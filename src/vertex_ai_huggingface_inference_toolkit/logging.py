@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 import warnings
 
 from rich.logging import RichHandler
@@ -11,7 +12,11 @@ def get_logger(name: str) -> logging.Logger:
     """
 
     logging.basicConfig(
-        level="INFO", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
+        level="INFO",
+        format="%(message)s",
+        datefmt="[%X]",
+        handlers=[RichHandler()],
+        stream=sys.stdout,
     )
     # Remove `datasets` logger to only log on `critical` mode
     # as it produces `PyTorch` messages to update on `info`
