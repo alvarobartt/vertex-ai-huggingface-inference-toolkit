@@ -3,23 +3,23 @@ build-backend = "hatchling.build"
 requires = ["hatchling"]
 
 [project]
-authors = [{name = "Alvaro Bartolome"}]
+authors = [{ name = "Alvaro Bartolome", email = "alvarobartt@gmail.com" }]
 classifiers = [
-  "Topic :: Internet",
-  "Topic :: Software Development :: Libraries :: Application Frameworks",
-  "Topic :: Software Development :: Libraries :: Python Modules",
-  "Topic :: Software Development :: Libraries",
-  "Topic :: Software Development",
-  "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
-  "Development Status :: 4 - Beta",
-  "Programming Language :: Python",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: Implementation :: CPython",
-  "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Internet",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = []
 description = "🤗 Hugging Face Inference Toolkit for Google Cloud Vertex AI (similar to SageMaker's Inference Toolkit, but unofficial)"
@@ -40,39 +40,21 @@ path = "src/vertex_ai_huggingface_inference_toolkit/__init__.py"
 
 [project.optional-dependencies]
 docs = [
-  "mkdocs~=1.4.0",
-  "mkdocs-material~=8.5.4",
-  "mkdocs-git-revision-date-localized-plugin~=1.1.0",
-  "mkdocstrings[python]~=0.19.0",
+    "mkdocs~=1.4.0",
+    "mkdocs-material~=8.5.4",
+    "mkdocs-git-revision-date-localized-plugin~=1.1.0",
+    "mkdocstrings[python]~=0.19.0",
 ]
-quality = [
-  "mypy~=1.4.0",
-  "ruff>=0.3.0",
-  "pre-commit>=3.5.0"
-]
-tests = [
-  "pytest~=7.1.2",
-  "pytest-cov~=4.1",
-]
+quality = ["mypy~=1.4.0", "ruff>=0.3.0", "pre-commit>=3.5.0"]
+tests = ["pytest~=7.1.2", "pytest-cov~=4.1"]
 
 [tool.hatch.envs.quality]
-features = [
-  "quality",
-]
+features = ["quality"]
 
 [tool.hatch.envs.quality.scripts]
-check = [
-  "ruff src tests",
-  "ruff format --check src tests",
-]
-format = [
-  "ruff --fix src tests",
-  "ruff format src tests",
-  "check",
-]
-typecheck = [
-  "mypy src --install-types --non-interactive",
-]
+check = ["ruff src tests", "ruff format --check src tests"]
+format = ["ruff --fix src tests", "ruff format src tests", "check"]
+typecheck = ["mypy src --install-types --non-interactive"]
 
 [tool.mypy]
 python_version = "3.10"
@@ -81,27 +63,14 @@ ignore_missing_imports = true
 warn_return_any = true
 
 [tool.ruff]
-ignore = [
-  "E501", # line too long, handled by black
-  "B008", # do not perform function calls in argument defaults
-  "C901", # too complex
-]
-select = [
-  "E", # pycodestyle errors
-  "W", # pycodestyle warnings
-  "F", # pyflakes
-  "I", # isort
-  "C", # flake8-comprehensions
-  "B", # flake8-bugbear
-]
+ignore = ["E501", "B008", "C901"]
+select = ["E", "W", "F", "I", "C", "B"]
 
 [tool.ruff.isort]
 known-first-party = ["vertex_ai_huggingface_inference_toolkit"]
 
 [tool.hatch.envs.tests]
-features = [
-  "tests",
-]
+features = ["tests"]
 
 [tool.hatch.envs.tests.scripts]
 run = "pytest --cov=vertex_ai_huggingface_inference_toolkit --cov-report=term-missing tests/ --durations 0 -s {args:tests}"
@@ -110,24 +79,18 @@ run = "pytest --cov=vertex_ai_huggingface_inference_toolkit --cov-report=term-mi
 python = ["38", "39", "310", "311"]
 
 [tool.hatch.envs.docs]
-features = [
-  "docs",
-]
+features = ["docs"]
 
 [tool.hatch.envs.docs.scripts]
-build = [
-  "mkdocs build",
-]
-serve = [
-  "mkdocs serve",
-]
+build = ["mkdocs build"]
+serve = ["mkdocs serve"]
 
 [tool.hatch.build.targets.sdist]
 exclude = [
-  "/.github",
-  "/.vscode",
-  "/docs",
-  "/.pre-commit-config.yaml",
-  "/.gitignore",
-  "/tests",
+    "/.github",
+    "/.vscode",
+    "/docs",
+    "/.pre-commit-config.yaml",
+    "/.gitignore",
+    "/tests",
 ]
