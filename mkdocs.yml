@@ -1,12 +1,12 @@
-site_name: REPLACE_PACKAGE_NAME
-site_url: https://github.com/REPLACE_GITHUB_USERNAME/REPLACE_PACKAGE_NAME
-site_author: REPLACE_FULL_NAME
-site_description: REPLACE_PACKAGE_DESCRIPTION
+site_name: vertex-ai-huggingface-inference-toolkit
+site_url: https://github.com/alvarobartt/vertex-ai-huggingface-inference-toolkit
+site_author: Alvaro Bartolome
+site_description: 🤗 Hugging Face Inference Toolkit for Google Cloud Vertex AI (similar to SageMaker's Inference Toolkit, but unofficial)
 
-repo_name: REPLACE_GITHUB_USERNAME/REPLACE_PACKAGE_NAME
-repo_url: https://github.com/REPLACE_GITHUB_USERNAME/REPLACE_PACKAGE_NAME
+repo_name: alvarobartt/vertex-ai-huggingface-inference-toolkit
+repo_url: https://github.com/alvarobartt/vertex-ai-huggingface-inference-toolkit
 
-copyright: Copyright (c) 2023-present REPLACE_FULL_NAME <REPLACE_EMAIL>
+copyright: Copyright (c) 2023-present Alvaro Bartolome <alvarobartt@gmail.com>
 
 theme:
   name: material
@@ -38,9 +38,9 @@ plugins:
 extra:
   social:
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/REPLACE_PACKAGE_NAME/
+      link: https://pypi.org/project/vertex_ai_huggingface_inference_toolkit/
     - icon: fontawesome/brands/github
-      link: https://github.com/REPLACE_GITHUB_USERNAME
+      link: https://github.com/alvarobartt
     # - icon: fontawesome/brands/twitter
     #   link: https://twitter.com/REPLACE_TWITTER_USERNAME
     # - icon: fontawesome/brands/linkedin

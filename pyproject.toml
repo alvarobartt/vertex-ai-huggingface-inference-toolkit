@@ -3,7 +3,7 @@ build-backend = "hatchling.build"
 requires = ["hatchling"]
 
 [project]
-authors = [{name = "REPLACE_FULL_NAME"}]
+authors = [{name = "Alvaro Bartolome"}]
 classifiers = [
   "Topic :: Internet",
   "Topic :: Software Development :: Libraries :: Application Frameworks",
@@ -22,21 +22,21 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = []
-description = "REPLACE_PACKAGE_DESCRIPTION"
+description = "🤗 Hugging Face Inference Toolkit for Google Cloud Vertex AI (similar to SageMaker's Inference Toolkit, but unofficial)"
 dynamic = ["version"]
 keywords = []
 license = "MIT"
-name = "REPLACE_PACKAGE_NAME"
+name = "vertex_ai_huggingface_inference_toolkit"
 readme = "README.md"
-requires-python = ">=3.8,<3.12"
+requires-python = ">=3.8"
 
 [project.urls]
-Documentation = "https://REPLACE_GITHUB_USERNAME.github.io/REPLACE_PACKAGE_NAME"
-Issues = "https://github.com/REPLACE_GITHUB_USERNAME/REPLACE_PACKAGE_NAME/issues"
-Source = "https://github.com/REPLACE_GITHUB_USERNAME/REPLACE_PACKAGE_NAME"
+Documentation = "https://alvarobartt.github.io/vertex-ai-huggingface-inference-toolkit"
+Issues = "https://github.com/alvarobartt/vertex-ai-huggingface-inference-toolkit/issues"
+Source = "https://github.com/alvarobartt/vertex-ai-huggingface-inference-toolkit"
 
 [tool.hatch.version]
-path = "src/REPLACE_PACKAGE_NAME/__init__.py"
+path = "src/vertex_ai_huggingface_inference_toolkit/__init__.py"
 
 [project.optional-dependencies]
 docs = [
@@ -46,10 +46,9 @@ docs = [
   "mkdocstrings[python]~=0.19.0",
 ]
 quality = [
-  "black~=22.10.0",
   "mypy~=1.4.0",
-  "pre-commit~=2.20.0",
-  "ruff~=0.0.263",
+  "ruff>=0.3.0",
+  "pre-commit>=3.5.0"
 ]
 tests = [
   "pytest~=7.1.2",
@@ -63,12 +62,12 @@ features = [
 
 [tool.hatch.envs.quality.scripts]
 check = [
-  "black --check --diff --preview src tests",
   "ruff src tests",
+  "ruff format --check src tests",
 ]
 format = [
-  "black --preview src tests",
   "ruff --fix src tests",
+  "ruff format src tests",
   "check",
 ]
 typecheck = [
@@ -76,7 +75,7 @@ typecheck = [
 ]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 check_untyped_defs = true
 ignore_missing_imports = true
 warn_return_any = true
@@ -97,7 +96,7 @@ select = [
 ]
 
 [tool.ruff.isort]
-known-first-party = ["REPLACE_PACKAGE_NAME"]
+known-first-party = ["vertex_ai_huggingface_inference_toolkit"]
 
 [tool.hatch.envs.tests]
 features = [
@@ -105,7 +104,7 @@ features = [
 ]
 
 [tool.hatch.envs.tests.scripts]
-run = "pytest --cov=REPLACE_PACKAGE_NAME --cov-report=term-missing tests/ --durations 0 -s {args:tests}"
+run = "pytest --cov=vertex_ai_huggingface_inference_toolkit --cov-report=term-missing tests/ --durations 0 -s {args:tests}"
 
 [[tool.hatch.envs.tests.matrix]]
 python = ["38", "39", "310", "311"]
@@ -128,10 +127,7 @@ exclude = [
   "/.github",
   "/.vscode",
   "/docs",
-  "/.devcontainer",
   "/.pre-commit-config.yaml",
   "/.gitignore",
   "/tests",
-  "/Dockerfile",
-  "/.dockerignore",
 ]

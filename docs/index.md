@@ -1,3 +1,3 @@
-# REPLACE_PACKAGE_NAME
+# 🤗 Hugging Face Inference Toolkit for Google Cloud Vertex AI (similar to SageMaker's Inference Toolkit, but unofficial)
 
-REPLACE_PACKAGE_DESCRIPTION
+WIP
