@@ -64,4 +64,4 @@ def download_files_from_hub(repo_id: str, framework: str) -> str:
     if pattern in ignore_patterns:
         ignore_patterns.remove(pattern)
 
-    return snapshot_download(repo_id, ignore_patterns=ignore_patterns or None)
+    return snapshot_download(repo_id, ignore_patterns=ignore_patterns or None)  # type: ignore

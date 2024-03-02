@@ -3,13 +3,13 @@ import warnings
 from pathlib import Path
 from typing import Optional
 
-from google.cloud import storage
+from google.cloud.storage import Client
 
 
 def upload_directory_to_gcs(
     local_dir: str, bucket_name: Optional[str] = None, remote_dir: Optional[str] = None
 ) -> str:
-    client = storage.Client()
+    client = Client()
 
     bucket = client.bucket(bucket_name)
     if not bucket.exists():
@@ -26,4 +26,4 @@ def upload_directory_to_gcs(
 
             blob = bucket.blob(remote_file_path)
             blob.upload_from_filename(str(local_file))
-    return bucket.path
+    return bucket.path  # type: ignore
