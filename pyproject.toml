@@ -16,7 +16,13 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
-dependencies = ["docker", "google-cloud-aiplatform", "transformers"]
+dependencies = [
+    "docker",
+    "google-cloud-aiplatform",
+    "google-cloud-storage",
+    "transformers",
+    "huggingface_hub[hf_transfer]",
+]
 description = "🤗 Hugging Face Inference Toolkit for Google Cloud Vertex AI (similar to SageMaker's Inference Toolkit, but unofficial)"
 dynamic = ["version"]
 keywords = []
