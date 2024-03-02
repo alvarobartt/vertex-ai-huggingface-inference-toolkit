@@ -41,10 +41,10 @@ extra:
       link: https://pypi.org/project/vertex_ai_huggingface_inference_toolkit/
     - icon: fontawesome/brands/github
       link: https://github.com/alvarobartt
-    # - icon: fontawesome/brands/twitter
-    #   link: https://twitter.com/REPLACE_TWITTER_USERNAME
-    # - icon: fontawesome/brands/linkedin
-    #   link: https://www.linkedin.com/in/REPLACE_LINKEDIN_USERNAME/
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/alvarobartt
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/in/alvarobartt
 
 nav:
   - Home: index.md
