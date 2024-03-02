@@ -3,20 +3,26 @@ from typing import Dict, List, Literal, Optional
 
 from google.cloud import aiplatform
 
+from vertex_ai_huggingface_inference_toolkit.docker import build_docker_image
+from vertex_ai_huggingface_inference_toolkit.google_cloud.storage import (
+    upload_directory_to_gcs,
+)
+from vertex_ai_huggingface_inference_toolkit.huggingface import download_files_from_hub
+
 
 class TransformersModel:
     # Steps:
     # 1. Download the model from the Hugging Face Hub (only the required files)
-    # 2a. Upload the model to Google Cloud Storage
-    # 2b. Build the Docker image (could be built already)
-    # 3. Register the model in Vertex AI
-    # 4. Deploy the model in Vertex AI
+    # 2. Upload the model to Google Cloud Storage
+    # 3. Build the Docker image (could be built already)
+    # 4. Push the Docker image to Google Container Registry
+    # 4. Register the model in Vertex AI
 
     def __init__(
         self,
         model_name_or_path: Optional[str] = None,
         model_bucket_uri: Optional[str] = None,
-        framework: Literal["torch", "jax", "tensorflow"] = "torch",
+        framework: Literal["torch", "tensorflow", "flax"] = "torch",
         framework_version: Optional[str] = None,
         transformers_version: Optional[str] = None,
         python_version: Optional[str] = None,
@@ -25,7 +31,6 @@ class TransformersModel:
         extra_requirements: Optional[List[str]] = None,
         environment_variables: Optional[Dict[str, str]] = None,
     ) -> None:
-        # aiplatform.init(project=project_id, location=region)
         if model_name_or_path is None and model_bucket_uri is None:
             raise ValueError(
                 "You need to provide either `model_name_or_path` or `model_bucket_uri`"
@@ -35,6 +40,25 @@ class TransformersModel:
             raise ValueError(
                 "You can't provide both `model_name_or_path` and `model_bucket_uri`"
             )
+
+        if model_bucket_uri is not None:
+            self.model_bucket_uri = model_bucket_uri
+
+        if model_name_or_path is not None:
+            _local_dir = download_files_from_hub(
+                repo_id=model_name_or_path, framework=framework
+            )
+            self.model_bucket_uri = upload_directory_to_gcs(local_dir=_local_dir)
+
+        # TODO: Push the local Docker image to the Artifact Registry
+        self.image = custom_image_uri or build_docker_image(
+            python_version=python_version or "3.10",
+            framework=framework or "torch",
+            framework_version=framework_version or "2.1.0",
+            transformers_version=transformers_version or "4.38.2",
+            cuda_version=cuda_version,
+            extra_requirements=extra_requirements,
+        )
 
         if environment_variables is None:
             environment_variables = {}
@@ -46,6 +70,7 @@ class TransformersModel:
             environment_variables["VERTEX_CPR_WEB_CONCURRENCY"] = "1"
 
         # https://github.com/googleapis/python-aiplatform/blob/63ad1bf9e365d2f10b91e2fd036e3b7d937336c0/google/cloud/aiplatform/models.py#L2974
+        # aiplatform.init(project=project_id, location=region)
         # self._model: aiplatform.Model = aiplatform.Model.upload(
         #     display_name=model_name_or_path.replace("/", "--"),  # type: ignore
         #     artifact_uri="gs://huggingface-cloud/bart-large-mnli",  # Should be created if not provided
@@ -58,23 +83,5 @@ class TransformersModel:
     def from_bucket(cls, bucket_name: str) -> "TransformersModel":  # type: ignore
         pass
 
-    # from sagemaker.huggingface import HuggingFaceModel
-    #
-    # model = HuggingFaceModel(
-    #     model_data=s3_uri,
-    #     role=role,
-    #     transformers_version="4.26",
-    #     pytorch_version="1.13",
-    #     py_version="py39",
-    # )
-    # def deploy(
-    #     self,
-    #     machine_type: Optional[str] = None,
-    #     accelerator_type: Optional[str] = None,
-    #     accelerator_count: int = 0,
-    # ) -> None:
-    #     return self._model.deploy(  # type: ignore
-    #         machine_type=machine_type,
-    #         accelerator_type=accelerator_type,
-    #         accelerator_count=accelerator_count,
-    #     )
+    def deploy(self) -> None:
+        pass
