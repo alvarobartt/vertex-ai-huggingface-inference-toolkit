@@ -1,0 +1,23 @@
+ARG CUDA_VERSION="12.3.0"
+FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu22.04 AS build
+LABEL maintainer="Alvaro Bartolome"
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ARG PYTHON_VERSION="3.10"
+RUN apt-get update && \
+    apt-get install software-properties-common -y && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install python${PYTHON_VERSION} python3-pip -y && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN ln -s "/usr/bin/python${PYTHON_VERSION}" /usr/bin/python
+ENV PYTHON=/usr/bin/python
+
+ARG FRAMEWORK="torch"
+ARG FRAMEWORK_VERSION="2.2.0"
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    python -m pip install --no-cache-dir ${FRAMEWORK}==${FRAMEWORK_VERSION}
+
+ENTRYPOINT ["bash"]

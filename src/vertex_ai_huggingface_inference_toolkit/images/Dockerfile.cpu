@@ -1,0 +1,12 @@
+ARG PYTHON_VERSION="3.10"
+FROM python:${PYTHON_VERSION}-slim AS build
+LABEL maintainer="Alvaro Bartolome"
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+ARG FRAMEWORK="torch"
+ARG FRAMEWORK_VERSION="2.2.0"
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    python -m pip install --no-cache-dir ${FRAMEWORK}==${FRAMEWORK_VERSION}
+
+ENTRYPOINT ["bash"]
