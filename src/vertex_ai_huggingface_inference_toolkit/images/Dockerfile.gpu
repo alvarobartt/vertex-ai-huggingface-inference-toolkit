@@ -28,6 +28,9 @@ ARG FRAMEWORK="torch"
 ARG FRAMEWORK_VERSION="2.2.0"
 RUN python -m pip install --no-cache-dir ${FRAMEWORK}==${FRAMEWORK_VERSION}
 
+ARG EXTRA_REQUIREMENTS
+RUN if [ -n "${EXTRA_REQUIREMENTS}" ]; then python -m pip install --no-cache-dir --force-reinstall ${EXTRA_REQUIREMENTS}; fi
+
 ENV HANDLER_MODULE=google.cloud.aiplatform.prediction.handler
 ENV HANDLER_CLASS=PredictionHandler
 ENV PREDICTOR_MODULE=vertex_ai_huggingface_inference_toolkit.predictors.transformers
