@@ -1,8 +1,6 @@
 import warnings
 from typing import Dict, List, Literal, Optional
 
-from google.cloud import aiplatform
-
 from vertex_ai_huggingface_inference_toolkit.docker import build_docker_image
 from vertex_ai_huggingface_inference_toolkit.google_cloud.storage import (
     upload_directory_to_gcs,
@@ -70,6 +68,7 @@ class TransformersModel:
             environment_variables["VERTEX_CPR_WEB_CONCURRENCY"] = "1"
 
         # https://github.com/googleapis/python-aiplatform/blob/63ad1bf9e365d2f10b91e2fd036e3b7d937336c0/google/cloud/aiplatform/models.py#L2974
+        # from google.cloud import aiplatform
         # aiplatform.init(project=project_id, location=region)
         # self._model: aiplatform.Model = aiplatform.Model.upload(
         #     display_name=model_name_or_path.replace("/", "--"),  # type: ignore
