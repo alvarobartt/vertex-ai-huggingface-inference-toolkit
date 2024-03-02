@@ -2,3 +2,7 @@
 
 __author__ = "Alvaro Bartolome <alvarobartt@gmail.com>"
 __version__ = "0.0.1"
+
+from vertex_ai_huggingface_inference_toolkit.transformers import TransformersModel
+
+__all__ = ["TransformersModel"]
