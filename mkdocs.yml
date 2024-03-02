@@ -6,7 +6,7 @@ site_description: 🤗 Hugging Face Inference Toolkit for Google Cloud Vertex AI
 repo_name: alvarobartt/vertex-ai-huggingface-inference-toolkit
 repo_url: https://github.com/alvarobartt/vertex-ai-huggingface-inference-toolkit
 
-copyright: Copyright (c) 2023-present Alvaro Bartolome <alvarobartt@gmail.com>
+copyright: Copyright (c) 2024-present Alvaro Bartolome <alvarobartt@gmail.com>
 
 theme:
   name: material
