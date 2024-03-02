@@ -1,22 +1,55 @@
+import re
+import sys
 from datetime import datetime
-from typing import List
+from typing import List, Optional
+
+if sys.version_info < (3, 9):
+    import importlib_resources
+else:
+    import importlib.resources as importlib_resources
 
 import docker
 
 from vertex_ai_huggingface_inference_toolkit.utils import CACHE_PATH
 
 
-def build_docker_image(base_image: str, requirements: List[str]) -> str:
-    cache_path = (
-        CACHE_PATH
-        / f"{base_image.replace(':', '_')}_{datetime.now().strftime('%Y%m%d%H%M')}"
+def build_docker_image(
+    python_version: str,
+    framework: str,
+    framework_version: str,
+    transformers_version: str,
+    cuda_version: Optional[str] = None,
+    extra_requirements: Optional[List[str]] = None,
+) -> str:
+    _cuda_string = f"cu{cuda_version}" if cuda_version is not None else "cpu"
+    _tag = f"py{python_version}_{_cuda_string}_{framework}_{framework_version}_transformers_{transformers_version}"
+
+    _dockerfile = "Dockerfile.cpu"
+    _build_args = {
+        "platform": "linux/amd64",
+        "PYTHON_VERSION": python_version,
+        "FRAMEWORK": framework,
+        "FRAMEWORK_VERSION": framework_version,
+        "TRANSFORMERS_VERSION": transformers_version,
+    }
+    if cuda_version is not None:
+        _build_args["CUDA_VERSION"] = cuda_version
+        _dockerfile = "Dockerfile.gpu"
+    if extra_requirements is not None:
+        _build_args["EXTRA_REQUIREMENTS"] = " ".join(extra_requirements)
+
+    _path = str(
+        importlib_resources.files("vertex_ai_huggingface_inference_toolkit")
+        / "dockerfiles"
     )
+
+    cache_path = CACHE_PATH / _tag / datetime.now().strftime("%Y-%m-%d--%H:%M")
     cache_path.mkdir(parents=True, exist_ok=True)
 
-    dockerfile_content = f"FROM {base_image}\n"
-    dockerfile_content += "RUN python -m pip install --no-cache-dir --upgrade pip"
-    for req in requirements:
-        dockerfile_content += f" && \\\n    python -m pip install --no-cache-dir {req}"
+    dockerfile_content = open(f"{_path}/{_dockerfile}", mode="r").read()
+    for arg, value in _build_args.items():
+        pattern = re.compile(rf"\$\{{\s*{arg}\s*}}")
+        dockerfile_content = re.sub(pattern, value, dockerfile_content)
 
     dockerfile_path = cache_path / "Dockerfile"
     with dockerfile_path.open(mode="w") as dockerfile:
@@ -24,10 +57,10 @@ def build_docker_image(base_image: str, requirements: List[str]) -> str:
 
     client = docker.from_env()
     image, _ = client.images.build(  # type: ignore
-        path=cache_path.as_posix(),
-        dockerfile="Dockerfile",
-        buildargs={"platform": "linux/amd64"},
-        tag="vertex-ai-huggingface-inference-toolkit:latest",
+        path=_path,
+        dockerfile=_dockerfile,
+        buildargs=_build_args,
+        tag=_tag,
         quiet=False,
         rm=True,
     )
