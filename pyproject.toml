@@ -43,14 +43,6 @@ docs = [
 quality = ["mypy~=1.4.0", "ruff>=0.3.0", "pre-commit>=3.5.0"]
 tests = ["pytest~=7.1.2", "pytest-cov~=4.1"]
 
-[tool.hatch.envs.quality]
-features = ["quality"]
-
-[tool.hatch.envs.quality.scripts]
-check = ["ruff src tests", "ruff format --check src tests"]
-format = ["ruff --fix src tests", "ruff format src tests", "check"]
-typecheck = ["mypy src --install-types --non-interactive"]
-
 [tool.mypy]
 python_version = "3.10"
 check_untyped_defs = true
@@ -63,22 +55,6 @@ select = ["E", "W", "F", "I", "C", "B"]
 
 [tool.ruff.isort]
 known-first-party = ["vertex_ai_huggingface_inference_toolkit"]
-
-[tool.hatch.envs.tests]
-features = ["tests"]
-
-[tool.hatch.envs.tests.scripts]
-run = "pytest --cov=vertex_ai_huggingface_inference_toolkit --cov-report=term-missing tests/ --durations 0 -s {args:tests}"
-
-[[tool.hatch.envs.tests.matrix]]
-python = ["38", "39", "310", "311"]
-
-[tool.hatch.envs.docs]
-features = ["docs"]
-
-[tool.hatch.envs.docs.scripts]
-build = ["mkdocs build"]
-serve = ["mkdocs serve"]
 
 [tool.hatch.build.targets.sdist]
 exclude = [
