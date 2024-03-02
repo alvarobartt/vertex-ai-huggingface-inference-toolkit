@@ -3,6 +3,11 @@ FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu22.04 AS build
 LABEL maintainer="Alvaro Bartolome"
 
 ARG DEBIAN_FRONTEND=noninteractive
+ENV PYTHONDONTWRITEBYTECODE=1
+
+RUN mkdir -m 777 -p /usr/app /home
+WORKDIR /usr/app
+ENV HOME=/home
 
 ARG PYTHON_VERSION="3.10"
 RUN apt-get update && \
@@ -15,9 +20,18 @@ RUN apt-get update && \
 RUN ln -s "/usr/bin/python${PYTHON_VERSION}" /usr/bin/python
 ENV PYTHON=/usr/bin/python
 
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    python -m pip install --no-cache-dir --force-reinstall "google-cloud-aiplatform[prediction]>=1.27.0" && \
+    python -m pip install --no-cache-dir --force-reinstall "vertex_ai_huggingface_inference_toolkit"
+
 ARG FRAMEWORK="torch"
 ARG FRAMEWORK_VERSION="2.2.0"
-RUN python -m pip install --no-cache-dir --upgrade pip && \
-    python -m pip install --no-cache-dir ${FRAMEWORK}==${FRAMEWORK_VERSION}
+RUN python -m pip install --no-cache-dir ${FRAMEWORK}==${FRAMEWORK_VERSION}
 
-ENTRYPOINT ["bash"]
+ENV HANDLER_MODULE=google.cloud.aiplatform.prediction.handler
+ENV HANDLER_CLASS=PredictionHandler
+ENV PREDICTOR_MODULE=vertex_ai_huggingface_inference_toolkit.predictors.transformers
+ENV PREDICTOR_CLASS=TransformersPredictor
+
+EXPOSE 8080
+ENTRYPOINT ["python", "-m", "google.cloud.aiplatform.prediction.model_server"]
