@@ -56,10 +56,14 @@ ignore_missing_imports = true
 warn_return_any = true
 
 [tool.ruff]
-ignore = ["E501", "B008", "C901"]
-select = ["E", "W", "F", "I", "C", "B"]
+line-length = 88
+exclude = ["docs"]
 
-[tool.ruff.isort]
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "C", "B"]
+ignore = ["E501", "B008", "C901"]
+
+[tool.ruff.lint.isort]
 known-first-party = ["vertex_ai_huggingface_inference_toolkit"]
 
 [tool.hatch.build.targets.sdist]
