@@ -18,13 +18,6 @@ from vertex_ai_huggingface_inference_toolkit.huggingface import download_files_f
 
 
 class TransformersModel:
-    # Steps:
-    # 1. Download the model from the Hugging Face Hub (only the required files)
-    # 2. Upload the model to Google Cloud Storage
-    # 3. Build the Docker image (could be built already)
-    # 4. Push the Docker image to Google Container Registry
-    # 4. Register the model in Vertex AI
-
     def __init__(
         self,
         project_id: Optional[str] = None,
@@ -72,7 +65,7 @@ class TransformersModel:
                 repo_id=model_name_or_path, framework=framework
             )
             self.model_bucket_uri = upload_directory_to_gcs(
-                project_id=self.project_id,
+                project_id=self.project_id,  # type: ignore
                 location=self.location,
                 local_dir=_local_dir,  # type: ignore
             )
@@ -115,10 +108,11 @@ class TransformersModel:
             else model_bucket_uri.split("/")[-1]  # type: ignore
         )
 
-        aiplatform.init(project=self.project_id, location=self.location)
         # https://github.com/googleapis/python-aiplatform/blob/63ad1bf9e365d2f10b91e2fd036e3b7d937336c0/google/cloud/aiplatform/models.py#L2974
         self._model: aiplatform.Model = aiplatform.Model.upload(
             display_name=display_name,
+            project=self.project_id,
+            location=self.location,
             artifact_uri=self.model_bucket_uri,
             serving_container_image_uri=self.image_uri,
             serving_container_environment_variables=environment_variables,
@@ -128,5 +122,19 @@ class TransformersModel:
     def from_bucket(cls, bucket_name: str) -> "TransformersModel":  # type: ignore
         pass
 
-    def deploy(self) -> None:
-        pass
+    def deploy(
+        self,
+        machine_type: Optional[str] = None,
+        min_replica_count: int = 1,
+        max_replica_count: int = 1,
+        accelerator_type: Optional[str] = None,
+        accelerator_count: Optional[int] = None,
+    ) -> None:
+        # https://github.com/googleapis/python-aiplatform/blob/63ad1bf9e365d2f10b91e2fd036e3b7d937336c0/google/cloud/aiplatform/models.py#L3431
+        self._model.deploy(
+            machine_type=machine_type,
+            min_replica_count=min_replica_count,
+            max_replica_count=max_replica_count,
+            accelerator_type=accelerator_type,
+            accelerator_count=accelerator_count,
+        )
