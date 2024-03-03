@@ -29,10 +29,11 @@ def create_repository_in_artifact_registry(
         request = GetRepositoryRequest(name=repository_path)
 
         response = client.get_repository(request=request)
-        if response.format_ != format:
+        response_format = Repository.Format(response.format_).name
+        if response_format != format:
             raise RuntimeError(
                 f"`repository={name}` already exists, but it's not a Docker repository"
-                f" but a `{response.format_}` one, please make sure to specify another"
+                f" but a `{response_format}` one, please make sure to specify another"
                 " `name` instead."
             ) from ae
 
