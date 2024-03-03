@@ -43,10 +43,10 @@ path = "src/vertex_ai_huggingface_inference_toolkit/__init__.py"
 
 [project.optional-dependencies]
 docs = [
-    "mkdocs~=1.4.0",
-    "mkdocs-material~=8.5.4",
-    "mkdocs-git-revision-date-localized-plugin~=1.1.0",
-    "mkdocstrings[python]~=0.19.0",
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocs-git-revision-date-localized-plugin",
+    "mkdocstrings[python]",
 ]
 quality = ["mypy~=1.4.0", "ruff>=0.3.0", "pre-commit>=3.5.0"]
 tests = ["pytest~=7.1.2", "pytest-cov~=4.1"]
