@@ -7,16 +7,20 @@ from google.cloud.storage import Client
 
 
 def upload_directory_to_gcs(
-    local_dir: str, bucket_name: Optional[str] = None, remote_dir: Optional[str] = None
+    project_id: str,
+    location: str,
+    local_dir: str,
+    bucket_name: Optional[str] = None,
+    remote_dir: Optional[str] = None,
 ) -> str:
-    client = Client()
+    client = Client(project=project_id)
 
     bucket = client.bucket(bucket_name)
     if not bucket.exists():
         warnings.warn(
             f"Bucket '{bucket_name}' does not exist. Creating it now.", stacklevel=1
         )
-        client.create_bucket(bucket_name)
+        client.create_bucket(bucket_name, location=location)
 
     local_path = Path(local_dir)
     for local_file in local_path.glob("**/*"):
