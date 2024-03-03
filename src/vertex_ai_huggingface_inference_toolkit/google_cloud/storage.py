@@ -1,16 +1,14 @@
-import os
 import warnings
-from pathlib import Path
 from typing import Optional
 
 from google.cloud.storage import Client
 
 
-def upload_directory_to_gcs(
+def upload_file_to_gcs(
     project_id: str,
     location: str,
-    local_dir: str,
-    remote_dir: str,
+    local_path: str,
+    remote_path: str,
     bucket_name: Optional[str] = None,
 ) -> str:
     client = Client(project=project_id)
@@ -27,12 +25,6 @@ def upload_directory_to_gcs(
     bucket.iam_configuration.uniform_bucket_level_access_enabled = True
     bucket.patch()
 
-    local_path = Path(local_dir)
-    for local_file in local_path.glob("**/*"):
-        if local_file.is_file():
-            relative_path = local_file.relative_to(local_path)
-            remote_file_path = os.path.join(remote_dir, str(relative_path))
-
-            blob = bucket.blob(remote_file_path)
-            blob.upload_from_filename(str(local_file))
-    return f"gs://{bucket_name}/{remote_dir}"  # type: ignore
+    blob = bucket.blob(remote_path)
+    blob.upload_from_filename(local_path)
+    return f"gs://{bucket_name}/{remote_path}"  # type: ignore
