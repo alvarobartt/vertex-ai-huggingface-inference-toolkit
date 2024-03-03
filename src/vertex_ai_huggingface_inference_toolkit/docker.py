@@ -1,4 +1,5 @@
 import re
+import subprocess
 import sys
 from datetime import datetime
 from typing import List, Optional
@@ -55,7 +56,7 @@ def build_docker_image(
     with dockerfile_path.open(mode="w") as dockerfile:
         dockerfile.write(dockerfile_content)
 
-    client = docker.from_env()
+    client = docker.from_env()  # type: ignore
     image, _ = client.images.build(  # type: ignore
         path=_path,
         dockerfile=_dockerfile,
@@ -65,3 +66,23 @@ def build_docker_image(
         rm=True,
     )
     return image.tags[0]  # type: ignore
+
+
+def configure_docker_and_push_image(
+    project_id: str,
+    location: str,
+    repository: str,
+    image_with_tag: str,
+) -> str:
+    if len(image_with_tag.split(":")) != 2:
+        image_with_tag += ":latest"
+
+    repository_url = f"{location}-docker.pkg.dev"
+    subprocess.run(["gcloud", "auth", "configure-docker", repository_url, "--quiet"])
+
+    repository_path = f"{repository_url}/{project_id}/{repository}/{image_with_tag}"
+
+    client = docker.from_env()  # type: ignore
+    client.images.get(image_with_tag).tag(repository_path)
+    client.images.push(repository_path)
+    return repository_path
