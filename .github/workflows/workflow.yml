@@ -111,4 +111,4 @@ jobs:
         run: hatch build
 
       - name: publish-package
-        run: hatch publish --user __token__
+        run: hatch publish
