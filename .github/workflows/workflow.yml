@@ -87,11 +87,14 @@ jobs:
       - name: deploy-to-gh-pages
         run: mkdocs gh-deploy --force
 
-  publish-package:
+  pypi-publish:
     needs: deploy-docs
     if: github.event_name == 'release'
 
     runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
 
     steps:
       - name: checkout
@@ -111,4 +114,4 @@ jobs:
         run: hatch build
 
       - name: publish-package
-        run: hatch publish
+        uses: pypa/gh-action-pypi-publish@release/v1
