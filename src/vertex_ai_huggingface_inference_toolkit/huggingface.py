@@ -63,5 +63,6 @@ def download_files_from_hub(repo_id: str, framework: str) -> str:
     ignore_patterns = list(set(FRAMEWORK_MAPPING.values()))
     if pattern in ignore_patterns:
         ignore_patterns.remove(pattern)
+    ignore_patterns.extend(["README.md", ".gitattributes"])
 
     return snapshot_download(repo_id, ignore_patterns=ignore_patterns or None)  # type: ignore
