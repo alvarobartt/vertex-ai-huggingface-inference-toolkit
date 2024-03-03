@@ -18,6 +18,7 @@ classifiers = [
 ]
 dependencies = [
     "docker",
+    "google-api-core",
     "google-cloud-aiplatform",
     "google-cloud-artifact-registry",
     "google-cloud-storage",
