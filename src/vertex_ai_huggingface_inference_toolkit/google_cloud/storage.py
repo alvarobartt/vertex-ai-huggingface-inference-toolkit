@@ -24,6 +24,8 @@ def upload_directory_to_gcs(
             f"Bucket '{bucket_name}' does not exist. Creating it now.", stacklevel=1
         )
         client.create_bucket(bucket_name, location=location)
+    bucket.iam_configuration.uniform_bucket_level_access_enabled = True
+    bucket.patch()
 
     local_path = Path(local_dir)
     for local_file in local_path.glob("**/*"):
