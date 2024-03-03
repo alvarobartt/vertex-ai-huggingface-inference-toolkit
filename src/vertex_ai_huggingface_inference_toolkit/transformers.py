@@ -1,3 +1,6 @@
+import os
+import shutil
+import tarfile
 import warnings
 from typing import Dict, List, Literal, Optional
 
@@ -12,7 +15,7 @@ from vertex_ai_huggingface_inference_toolkit.google_cloud.artifact_registry impo
     create_repository_in_artifact_registry,
 )
 from vertex_ai_huggingface_inference_toolkit.google_cloud.storage import (
-    upload_directory_to_gcs,
+    upload_file_to_gcs,
 )
 from vertex_ai_huggingface_inference_toolkit.huggingface import download_files_from_hub
 
@@ -64,11 +67,19 @@ class TransformersModel:
             _local_dir = download_files_from_hub(
                 repo_id=model_name_or_path, framework=framework
             )
-            self.model_bucket_uri = upload_directory_to_gcs(
+
+            _local_path = f"{_local_dir}/model.tar.gz"
+            if os.path.exists(_local_path):
+                shutil.rmtree(_local_path)
+            with tarfile.open(_local_path, "w:gz") as tf:
+                for file in os.listdir(_local_dir):
+                    tf.add(file, arcname=os.path.basename(file))
+
+            self.model_bucket_uri = upload_file_to_gcs(
                 project_id=self.project_id,  # type: ignore
                 location=self.location,
-                local_dir=_local_dir,  # type: ignore
-                remote_dir=model_name_or_path.replace("/", "--"),
+                local_path=_local_path,
+                remote_path=f"{model_name_or_path.replace('/', '--')}/model.tar.gz",
             )
 
         if custom_image_uri is None:
