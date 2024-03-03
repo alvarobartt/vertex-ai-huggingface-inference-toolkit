@@ -68,6 +68,7 @@ class TransformersModel:
                 project_id=self.project_id,  # type: ignore
                 location=self.location,
                 local_dir=_local_dir,  # type: ignore
+                remote_dir=model_name_or_path.replace("/", "--"),
             )
 
         if custom_image_uri is None:

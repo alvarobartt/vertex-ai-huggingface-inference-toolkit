@@ -10,10 +10,13 @@ def upload_directory_to_gcs(
     project_id: str,
     location: str,
     local_dir: str,
+    remote_dir: str,
     bucket_name: Optional[str] = None,
-    remote_dir: Optional[str] = None,
 ) -> str:
     client = Client(project=project_id)
+
+    if bucket_name is None:
+        bucket_name = "vertex-ai-huggingface-inference-toolkit"
 
     bucket = client.bucket(bucket_name)
     if not bucket.exists():
@@ -26,8 +29,8 @@ def upload_directory_to_gcs(
     for local_file in local_path.glob("**/*"):
         if local_file.is_file():
             relative_path = local_file.relative_to(local_path)
-            remote_file_path = os.path.join(remote_dir or "", str(relative_path))
+            remote_file_path = os.path.join(remote_dir, str(relative_path))
 
             blob = bucket.blob(remote_file_path)
             blob.upload_from_filename(str(local_file))
-    return bucket.path  # type: ignore
+    return f"gs://{bucket_name}/{remote_dir}"  # type: ignore
