@@ -22,7 +22,7 @@ def create_repository_in_artifact_registry(
     )
     try:
         response = client.create_repository(request=request)
-        return response.result().name
+        return response.result().name  # type: ignore
     except exceptions.AlreadyExists as ae:
         repository_path = f"{parent}/repositories/{name}"
 
@@ -31,8 +31,11 @@ def create_repository_in_artifact_registry(
         response = client.get_repository(request=request)
         if response.format_ != format:
             raise RuntimeError(
-                f"`repository={name}` already exists, but it's not a Docker repository but a `{response.format_}` one, please make sure to specify another `name` instead."
+                f"`repository={name}` already exists, but it's not a Docker repository"
+                f" but a `{response.format_}` one, please make sure to specify another"
+                " `name` instead."
             ) from ae
+
         warnings.warn(
             f"Skipping `repository={name}` creation since it already exists!",
             stacklevel=1,
