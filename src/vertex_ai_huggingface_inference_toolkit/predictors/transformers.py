@@ -34,8 +34,8 @@ class TransformersPredictor(Predictor):
             )
         except ValueError as ve:
             # Some models like `DebertaV2ForSequenceClassification` do not support `device_map='auto'`
-            pattern = re.compile(r"^[a-zA-Z]+ does not support `device_map=\'auto\'`$")
-            if not pattern.match(str(ve)):
+            pattern = re.compile(r"[a-zA-Z0-9]+ does not support `device_map=\'auto\'`")
+            if not pattern.search(str(ve)):
                 raise ve
 
             self._pipeline = pipeline(
