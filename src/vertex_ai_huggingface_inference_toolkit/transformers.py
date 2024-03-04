@@ -1,7 +1,6 @@
 import os
 import tarfile
 import warnings
-from pathlib import Path
 from typing import Dict, List, Literal, Optional
 
 from google.auth import default
@@ -18,6 +17,7 @@ from vertex_ai_huggingface_inference_toolkit.google_cloud.storage import (
     upload_file_to_gcs,
 )
 from vertex_ai_huggingface_inference_toolkit.huggingface import download_files_from_hub
+from vertex_ai_huggingface_inference_toolkit.utils import CACHE_PATH
 
 
 class TransformersModel:
@@ -68,18 +68,26 @@ class TransformersModel:
                 repo_id=model_name_or_path, framework=framework
             )
 
-            _local_path = Path(f"{_local_dir}/model.tar.gz")
-            if _local_path.exists():
-                _local_path.unlink()
+            _cache_path = CACHE_PATH / model_name_or_path.replace("/", "--")
+            if not _cache_path.exists():
+                _cache_path.mkdir(parents=True, exist_ok=True)
 
-            with tarfile.open(_local_path, "w:gz") as tf:
-                for filename in os.listdir(_local_dir):
-                    tf.add(f"{_local_dir}/{filename}", arcname=filename)
+            _tar_gz_path = _cache_path / "model.tar.gz"
+            if _tar_gz_path.exists():
+                _tar_gz_path.unlink()
+
+            with tarfile.open(_tar_gz_path, "w:gz") as tf:
+                for root, _, files in os.walk(_local_dir):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        if os.path.islink(file_path):
+                            file_path = os.path.realpath(file_path)
+                        tf.add(file_path, arcname=file)
 
             self.model_bucket_uri = upload_file_to_gcs(
                 project_id=self.project_id,  # type: ignore
                 location=self.location,
-                local_path=_local_path.as_posix(),
+                local_path=_tar_gz_path.as_posix(),
                 remote_path=f"{model_name_or_path.replace('/', '--')}/model.tar.gz",
             )
 

@@ -65,4 +65,6 @@ def download_files_from_hub(repo_id: str, framework: str) -> str:
         ignore_patterns.remove(pattern)
     ignore_patterns.extend(["README.md", ".gitattributes", ".git/*"])
 
-    return snapshot_download(repo_id, ignore_patterns=ignore_patterns or None)  # type: ignore
+    return snapshot_download(
+        repo_id, ignore_patterns=ignore_patterns or None, local_dir_use_symlinks=False
+    )  # type: ignore
