@@ -22,7 +22,7 @@ ENV PYTHON=/usr/bin/python
 
 RUN python -m pip install --no-cache-dir --upgrade pip && \
     python -m pip install --no-cache-dir --force-reinstall "google-cloud-aiplatform[prediction]>=1.27.0" && \
-    python -m pip install --no-cache-dir --force-reinstall "vertex_ai_huggingface_inference_toolkit[transformers]>=0.0.1.b4"
+    python -m pip install --no-cache-dir --force-reinstall "vertex_ai_huggingface_inference_toolkit[transformers]" --upgrade
 
 ARG FRAMEWORK="torch"
 ARG FRAMEWORK_VERSION="2.2.0"
