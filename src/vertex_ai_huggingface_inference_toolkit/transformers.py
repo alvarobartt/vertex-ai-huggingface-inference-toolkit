@@ -73,8 +73,8 @@ class TransformersModel:
                 _local_path.unlink()
 
             with tarfile.open(_local_path, "w:gz") as tf:
-                for file in os.listdir(_local_dir):
-                    tf.add(file, arcname=os.path.basename(file))
+                for filename in os.listdir(_local_dir):
+                    tf.add(f"{_local_dir}/{filename}", arcname=filename)
 
             self.model_bucket_uri = upload_file_to_gcs(
                 project_id=self.project_id,  # type: ignore
