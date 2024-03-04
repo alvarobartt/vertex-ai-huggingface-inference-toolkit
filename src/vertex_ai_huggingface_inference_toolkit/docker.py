@@ -23,7 +23,7 @@ def build_docker_image(
     extra_requirements: Optional[List[str]] = None,
 ) -> str:
     _cuda_string = f"cu{cuda_version}" if cuda_version is not None else "cpu"
-    _tag = f"py{python_version}_{_cuda_string}_{framework}_{framework_version}_transformers_{transformers_version}"
+    _tag = f"py{python_version}-{_cuda_string}-{framework}-{framework_version}-transformers-{transformers_version}"
 
     _dockerfile = "Dockerfile.cpu"
     _build_args = {
