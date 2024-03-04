@@ -27,4 +27,4 @@ def upload_file_to_gcs(
 
     blob = bucket.blob(remote_path)
     blob.upload_from_filename(local_path)
-    return f"gs://{bucket_name}/{remote_path}"  # type: ignore
+    return f"gs://{bucket_name}/{remote_path.replace('/model.tar.gz', '')}"  # type: ignore
