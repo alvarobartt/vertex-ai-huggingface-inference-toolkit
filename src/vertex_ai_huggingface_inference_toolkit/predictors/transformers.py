@@ -1,4 +1,5 @@
 import os
+import re
 import tarfile
 from typing import Any, Dict
 
@@ -7,6 +8,7 @@ from google.cloud.aiplatform.utils import prediction_utils
 from transformers import pipeline
 
 from vertex_ai_huggingface_inference_toolkit.logging import get_logger
+from vertex_ai_huggingface_inference_toolkit.utils import get_device
 
 
 class TransformersPredictor(Predictor):
@@ -24,9 +26,24 @@ class TransformersPredictor(Predictor):
             tar.extractall(path="./transformers-model")
 
         self._logger.debug(f"HF_TASK value is {os.getenv('HF_TASK')}")
-        self._pipeline = pipeline(
-            os.getenv("HF_TASK", ""), model="./transformers-model", device_map="auto"
-        )
+        try:
+            self._pipeline = pipeline(
+                os.getenv("HF_TASK", ""),
+                model="./transformers-model",
+                device_map="auto",
+            )
+        except ValueError as ve:
+            # Some models like `DebertaV2ForSequenceClassification` do not support `device_map='auto'`
+            pattern = re.compile(r"^[a-zA-Z]+ does not support `device_map=\'auto\'`$")
+            if not pattern.match(str(ve)):
+                raise ve
+
+            self._pipeline = pipeline(
+                os.getenv("HF_TASK", ""),
+                model="./transformers-model",
+                device=get_device(),
+            )
+
         self._logger.debug(
             f"`pipeline` successfully loaded using device={self._pipeline.device}"
         )
