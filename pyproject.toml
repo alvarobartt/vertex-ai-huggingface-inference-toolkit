@@ -24,7 +24,6 @@ dependencies = [
     "google-cloud-storage",
     "huggingface_hub[hf_transfer]",
     "rich",
-    "transformers",
 ]
 description = "🤗 Hugging Face Inference Toolkit for Google Cloud Vertex AI (similar to SageMaker's Inference Toolkit, but unofficial)"
 dynamic = ["version"]
@@ -43,6 +42,7 @@ Source = "https://github.com/alvarobartt/vertex-ai-huggingface-inference-toolkit
 path = "src/vertex_ai_huggingface_inference_toolkit/__init__.py"
 
 [project.optional-dependencies]
+transformers = ["accelerate", "transformers"]
 docs = [
     "mkdocs",
     "mkdocs-material",
