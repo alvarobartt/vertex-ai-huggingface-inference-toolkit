@@ -27,7 +27,6 @@ def build_docker_image(
 
     _dockerfile = "Dockerfile.cpu"
     _build_args = {
-        "platform": "linux/amd64",
         "PYTHON_VERSION": python_version,
         "FRAMEWORK": framework,
         "FRAMEWORK_VERSION": framework_version,
@@ -60,6 +59,7 @@ def build_docker_image(
     image, _ = client.images.build(  # type: ignore
         path=_path,
         dockerfile=_dockerfile,
+        platform="linux/amd64",
         buildargs=_build_args,
         tag=_tag,
         quiet=False,
