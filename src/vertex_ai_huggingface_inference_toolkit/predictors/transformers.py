@@ -17,7 +17,6 @@ class TransformersPredictor(Predictor):
 
     def load(self, artifacts_uri: str) -> None:
         """Loads the preprocessor and model artifacts."""
-        print(f"Downloading artifacts from {artifacts_uri}")
         self._logger.info(f"Downloading artifacts from {artifacts_uri}")
         prediction_utils.download_model_artifacts(artifacts_uri)
         self._logger.info("Artifacts successfully downloaded!")
@@ -28,16 +27,22 @@ class TransformersPredictor(Predictor):
 
         self._logger.info(f"HF_TASK value is {os.getenv('HF_TASK')}")
         try:
+            self._logger.info("Trying to load `pipeline` using `device_map='auto'")
             self._pipeline = pipeline(
                 os.getenv("HF_TASK", ""),
                 model="./transformers-model",
                 device_map="auto",
             )
+            self._logger.info(
+                f"`pipeline` successfully loaded using device_map='auto'={self._pipeline.device}"
+            )
         except ValueError as ve:
-            self._logger.error(f"Error while loading `pipeline`: {ve}")
+            self._logger.info(f"ValueError: {ve}")
             # Some models like `DebertaV2ForSequenceClassification` do not support `device_map='auto'`
             pattern = re.compile(r"[a-zA-Z0-9]+ does not support `device_map='auto'`")
-            print(f"Pattern {pattern} search results are {pattern.search(str(ve))}")
+            self._logger.info(
+                f"Pattern {pattern} search results are {pattern.search(str(ve))}"
+            )
             if not pattern.search(str(ve)):
                 self._logger.info(f"Pattern {pattern} did not match the error message")
 
