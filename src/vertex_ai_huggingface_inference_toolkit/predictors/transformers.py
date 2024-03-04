@@ -1,6 +1,5 @@
 import os
-
-# import re
+import re
 import tarfile
 from typing import Any, Dict
 
@@ -34,12 +33,13 @@ class TransformersPredictor(Predictor):
                 model="./transformers-model",
                 device_map="auto",
             )
-        except Exception:
-            # except ValueError as ve:
+        except ValueError as ve:
+            self._logger.error(f"Error while loading `pipeline`: {ve}")
             # Some models like `DebertaV2ForSequenceClassification` do not support `device_map='auto'`
-            # pattern = re.compile(r"[a-zA-Z0-9]+ does not support `device_map='auto'`")
-            # if not pattern.search(str(ve)):
-            #     raise ve
+            pattern = re.compile(r"[a-zA-Z0-9]+ does not support `device_map='auto'`")
+            print(f"Pattern {pattern} search results are {pattern.search(str(ve))}")
+            if not pattern.search(str(ve)):
+                self._logger.info(f"Pattern {pattern} did not match the error message")
 
             self._pipeline = pipeline(
                 os.getenv("HF_TASK", ""),
