@@ -17,15 +17,15 @@ class TransformersPredictor(Predictor):
 
     def load(self, artifacts_uri: str) -> None:
         """Loads the preprocessor and model artifacts."""
-        self._logger.debug(f"Downloading artifacts from {artifacts_uri}")
+        self._logger.info(f"Downloading artifacts from {artifacts_uri}")
         prediction_utils.download_model_artifacts(artifacts_uri)
-        self._logger.debug("Artifacts successfully downloaded!")
+        self._logger.info("Artifacts successfully downloaded!")
 
         os.makedirs("./transformers-model", exist_ok=True)
         with tarfile.open("model.tar.gz", "r:gz") as tar:
             tar.extractall(path="./transformers-model")
 
-        self._logger.debug(f"HF_TASK value is {os.getenv('HF_TASK')}")
+        self._logger.info(f"HF_TASK value is {os.getenv('HF_TASK')}")
         try:
             self._pipeline = pipeline(
                 os.getenv("HF_TASK", ""),
@@ -44,7 +44,7 @@ class TransformersPredictor(Predictor):
                 device=get_device(),
             )
 
-        self._logger.debug(
+        self._logger.info(
             f"`pipeline` successfully loaded using device={self._pipeline.device}"
         )
 
