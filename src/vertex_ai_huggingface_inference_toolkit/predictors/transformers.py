@@ -19,13 +19,13 @@ class TransformersPredictor(Predictor):
         prediction_utils.download_model_artifacts(artifacts_uri)
         self._logger.debug("Artifacts successfully downloaded!")
 
-        os.makedirs("./model", exist_ok=True)
+        os.makedirs("./transformers-model", exist_ok=True)
         with tarfile.open("model.tar.gz", "r:gz") as tar:
-            tar.extractall(path="./model")
+            tar.extractall(path="./transformers-model")
 
         self._logger.debug(f"HF_TASK value is {os.getenv('HF_TASK')}")
         self._pipeline = pipeline(
-            os.getenv("HF_TASK", ""), model="./model", device_map="auto"
+            os.getenv("HF_TASK", ""), model="./transformers-model", device_map="auto"
         )
         self._logger.debug(
             f"`pipeline` successfully loaded using device={self._pipeline.device}"
