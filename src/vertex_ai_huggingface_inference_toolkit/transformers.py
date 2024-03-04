@@ -1,7 +1,7 @@
 import os
-import shutil
 import tarfile
 import warnings
+from pathlib import Path
 from typing import Dict, List, Literal, Optional
 
 from google.auth import default
@@ -68,9 +68,10 @@ class TransformersModel:
                 repo_id=model_name_or_path, framework=framework
             )
 
-            _local_path = f"{_local_dir}/model.tar.gz"
-            if os.path.exists(_local_path):
-                shutil.rmtree(_local_path)
+            _local_path = Path(f"{_local_dir}/model.tar.gz")
+            if _local_path.exists():
+                _local_path.unlink()
+
             with tarfile.open(_local_path, "w:gz") as tf:
                 for file in os.listdir(_local_dir):
                     tf.add(file, arcname=os.path.basename(file))
@@ -78,7 +79,7 @@ class TransformersModel:
             self.model_bucket_uri = upload_file_to_gcs(
                 project_id=self.project_id,  # type: ignore
                 location=self.location,
-                local_path=_local_path,
+                local_path=_local_path.as_posix(),
                 remote_path=f"{model_name_or_path.replace('/', '--')}/model.tar.gz",
             )
 
