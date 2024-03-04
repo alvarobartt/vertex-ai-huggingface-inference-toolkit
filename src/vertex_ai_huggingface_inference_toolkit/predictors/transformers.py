@@ -1,5 +1,6 @@
 import os
-import re
+
+# import re
 import tarfile
 from typing import Any, Dict
 
@@ -13,10 +14,11 @@ from vertex_ai_huggingface_inference_toolkit.utils import get_device
 
 class TransformersPredictor(Predictor):
     def __init__(self) -> None:
-        self._logger = get_logger(__name__)
+        self._logger = get_logger("vertex-ai-huggingface-inference-toolkit")
 
     def load(self, artifacts_uri: str) -> None:
         """Loads the preprocessor and model artifacts."""
+        print(f"Downloading artifacts from {artifacts_uri}")
         self._logger.info(f"Downloading artifacts from {artifacts_uri}")
         prediction_utils.download_model_artifacts(artifacts_uri)
         self._logger.info("Artifacts successfully downloaded!")
@@ -32,11 +34,12 @@ class TransformersPredictor(Predictor):
                 model="./transformers-model",
                 device_map="auto",
             )
-        except ValueError as ve:
+        except Exception:
+            # except ValueError as ve:
             # Some models like `DebertaV2ForSequenceClassification` do not support `device_map='auto'`
-            pattern = re.compile(r"[a-zA-Z0-9]+ does not support `device_map='auto'`")
-            if not pattern.search(str(ve)):
-                raise ve
+            # pattern = re.compile(r"[a-zA-Z0-9]+ does not support `device_map='auto'`")
+            # if not pattern.search(str(ve)):
+            #     raise ve
 
             self._pipeline = pipeline(
                 os.getenv("HF_TASK", ""),
