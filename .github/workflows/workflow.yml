@@ -95,6 +95,8 @@ jobs:
 
     permissions:
       id-token: write
+      contents: read
+      packages: write
 
     steps:
       - name: checkout
