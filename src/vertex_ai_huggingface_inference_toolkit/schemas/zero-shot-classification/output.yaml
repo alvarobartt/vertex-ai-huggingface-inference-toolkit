@@ -1,0 +1,34 @@
+title: ZeroShotClassificationPipelineOutput
+oneOf:
+  - type: array
+    items:
+      type: object
+      properties:
+        sequence:
+          type: string
+          description: The sequence for which this is the output.
+        labels:
+          type: array
+          items:
+            type: string
+          description: The labels sorted by order of likelihood.
+        scores:
+          type: array
+          items:
+            type: float
+          description: The probabilities for each of the labels.
+  - type: object
+    properties:
+      sequence:
+        type: string
+        description: The sequence for which this is the output.
+      labels:
+        type: array
+        items:
+          type: string
+        description: The labels sorted by order of likelihood.
+      scores:
+        type: array
+        items:
+          type: float
+        description: The probabilities for each of the labels.

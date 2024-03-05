@@ -1,0 +1,36 @@
+title: ZeroShotClassificationPipelineInput
+type: object
+required:
+- sequences
+properties:
+  sequences:
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+    description: >
+      The sequence(s) to classify, will be truncated if the model input is too large.
+  candidate_labels:
+    description: >
+      The set of possible class labels to classify each sequence into.
+      Can be a single label, a string of comma-separated labels, or a list of labels.
+    oneOf:
+      - type: string
+      - type: array
+        items:
+          type: string
+  hypothesis_template:
+    description: >
+      The template used to turn each label into an NLI-style hypothesis.
+      This template must include a {} or similar syntax for the candidate label to be inserted into the template.
+      The default template is "This example is {}."
+    type: string
+    default: "This example is {}."
+  multi_label:
+    description: >
+      Whether or not multiple candidate labels can be true.
+      If `False`, the scores are normalized such that the sum of the label likelihoods for each sequence is 1.
+      If `True`, the labels are considered independent and probabilities are normalized for each candidate by doing a softmax of the entailment score vs. the contradiction score.
+    type: boolean
+    default: false
