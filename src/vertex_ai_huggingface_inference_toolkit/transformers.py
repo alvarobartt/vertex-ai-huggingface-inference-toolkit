@@ -61,9 +61,6 @@ class TransformersModel:
             location = "us-central1"
         self.location = location
 
-        if model_bucket_uri is not None:
-            self.model_bucket_uri = model_bucket_uri
-
         if model_name_or_path is not None:
             _local_dir = download_files_from_hub(
                 repo_id=model_name_or_path, framework=framework
@@ -85,12 +82,14 @@ class TransformersModel:
                             file_path = os.path.realpath(file_path)
                         tf.add(file_path, arcname=file)
 
-            self.model_bucket_uri = upload_file_to_gcs(
+            model_bucket_uri = upload_file_to_gcs(
                 project_id=self.project_id,  # type: ignore
                 location=self.location,
                 local_path=_tar_gz_path.as_posix(),
                 remote_path=f"{model_name_or_path.replace('/', '--')}/model.tar.gz",
             )
+
+        self.model_bucket_uri = model_bucket_uri.replace("/model.tar.gz", "")  # type: ignore
 
         if custom_image_uri is None:
             _image = build_docker_image(

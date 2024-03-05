@@ -22,9 +22,10 @@ def upload_file_to_gcs(
             f"Bucket '{bucket_name}' does not exist. Creating it now.", stacklevel=1
         )
         client.create_bucket(bucket_name, location=location)
-    bucket.iam_configuration.uniform_bucket_level_access_enabled = True
-    bucket.patch()
+
+        bucket.iam_configuration.uniform_bucket_level_access_enabled = True
+        bucket.patch()
 
     blob = bucket.blob(remote_path)
     blob.upload_from_filename(local_path)
-    return f"gs://{bucket_name}/{remote_path.replace('/model.tar.gz', '')}"  # type: ignore
+    return f"gs://{bucket_name}/{remote_path}"  # type: ignore
