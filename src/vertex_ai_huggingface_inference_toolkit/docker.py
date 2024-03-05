@@ -83,6 +83,6 @@ def configure_docker_and_push_image(
     repository_path = f"{repository_url}/{project_id}/{repository}/{image_with_tag}"
 
     client = docker.from_env()  # type: ignore
-    client.images.get(image_with_tag).tag(repository_path)
+    client.images.get(image_with_tag).tag(repository_path)  # type: ignore
     client.images.push(repository_path)
     return repository_path
