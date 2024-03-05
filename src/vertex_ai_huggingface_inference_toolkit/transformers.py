@@ -1,7 +1,7 @@
 import os
 import tarfile
 import warnings
-from typing import Dict, List, Literal, Optional
+from typing import Dict, List, Literal, Optional, Union
 
 from google.auth import default
 from google.cloud import aiplatform
@@ -138,10 +138,9 @@ class TransformersModel:
             serving_container_image_uri=self.image_uri,
             serving_container_environment_variables=environment_variables,
         )
-
-    @classmethod
-    def from_bucket(cls, bucket_name: str) -> "TransformersModel":  # type: ignore
-        pass
+        self._endpoints: List[
+            Union[aiplatform.models.Endpoint, aiplatform.models.PrivateEndpoint]
+        ] = []
 
     def deploy(
         self,
