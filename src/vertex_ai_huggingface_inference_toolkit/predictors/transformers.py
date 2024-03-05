@@ -45,15 +45,15 @@ class TransformersPredictor(Predictor):
         model_kwargs = os.getenv("HF_MODEL_KWARGS", None)
         if model_kwargs is not None:
             try:
-                model_kwargs = eval(model_kwargs)
-                self._logger.info(f"HF_MODEL_KWARGS value is {model_kwargs}")
-                model_kwargs.pop("device", None)
-                model_kwargs.pop("device_map", None)
+                model_kwargs_dict = eval(model_kwargs)
+                self._logger.info(f"HF_MODEL_KWARGS value is {model_kwargs_dict}")
+                model_kwargs_dict.pop("device", None)
+                model_kwargs_dict.pop("device_map", None)
             except Exception:
                 self._logger.error(
                     f"Failed to parse `HF_MODEL_KWARGS` environment variable: {model_kwargs}"
                 )
-                model_kwargs = {}
+                model_kwargs_dict = {}
 
         task = os.getenv("HF_TASK", "")
         if task != "":
@@ -65,7 +65,7 @@ class TransformersPredictor(Predictor):
                 task,
                 model=model_path,
                 device_map="auto",
-                **model_kwargs,  # type: ignore
+                **model_kwargs_dict,
             )
         except ValueError as ve:
             self._logger.error(
@@ -82,7 +82,7 @@ class TransformersPredictor(Predictor):
                 task,
                 model=model_path,
                 device=device,
-                **model_kwargs,  # type: ignore
+                **model_kwargs_dict,
             )
 
         self._logger.info(
