@@ -1,7 +1,13 @@
 import os
+import sys
 import tarfile
 import warnings
 from typing import Any, Dict, List, Literal, Optional, Union
+
+if sys.version_info < (3, 9):
+    import importlib_resources
+else:
+    import importlib.resources as importlib_resources
 
 from google.auth import default
 from google.cloud import aiplatform
@@ -134,6 +140,36 @@ class TransformersModel:
             else model_bucket_uri.split("/")[-1]  # type: ignore
         )
 
+        task = environment_variables.get("HF_TASK", "")
+        if task == "":
+            warnings.warn(
+                "`HF_TASK` hasn't been set within the `environment_variables` dict, so the"
+                " `task` will default to an empty string which may not be ideal. Additionally,"
+                " the `HF_TASK` needs to be defined so that the `instance_schema_uri` and"
+                " `predictions_schema_uri` can be generated automatically based on the `pipeline`"
+                " definition.",
+                stacklevel=1,
+            )
+            instance_schema_uri, prediction_schema_uri = None, None
+        else:
+            _path = str(
+                importlib_resources.files("vertex_ai_huggingface_inference_toolkit")
+                / "schemas"
+                / task
+            )
+            instance_schema_uri = upload_file_to_gcs(
+                project_id=self.project_id,  # type: ignore
+                location=self.location,
+                local_path=f"{_path}/input.yaml",
+                remote_path=f"{display_name}/{task}/input.yaml",
+            )
+            prediction_schema_uri = upload_file_to_gcs(
+                project_id=self.project_id,  # type: ignore
+                location=self.location,
+                local_path=f"{_path}/output.yaml",
+                remote_path=f"{display_name}/{task}/output.yaml",
+            )
+
         # https://github.com/googleapis/python-aiplatform/blob/63ad1bf9e365d2f10b91e2fd036e3b7d937336c0/google/cloud/aiplatform/models.py#L2974
         self._model: aiplatform.Model = aiplatform.Model.upload(  # type: ignore
             display_name=display_name,
@@ -142,6 +178,8 @@ class TransformersModel:
             artifact_uri=self.model_bucket_uri,
             serving_container_image_uri=self.image_uri,
             serving_container_environment_variables=environment_variables,
+            instance_schema_uri=instance_schema_uri,
+            prediction_schema_uri=prediction_schema_uri,
         )
         self._endpoints: List[
             Union[aiplatform.Endpoint, aiplatform.PrivateEndpoint]
