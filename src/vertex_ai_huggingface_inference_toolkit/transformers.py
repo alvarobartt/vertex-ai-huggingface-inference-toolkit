@@ -1,7 +1,7 @@
 import os
 import tarfile
 import warnings
-from typing import Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 from google.auth import default
 from google.cloud import aiplatform
@@ -26,6 +26,7 @@ class TransformersModel:
         project_id: Optional[str] = None,
         location: Optional[str] = None,
         model_name_or_path: Optional[str] = None,
+        model_kwargs: Optional[Dict[str, Any]] = None,
         model_bucket_uri: Optional[str] = None,
         framework: Literal["torch", "tensorflow", "flax"] = "torch",
         framework_version: Optional[str] = None,
@@ -116,9 +117,14 @@ class TransformersModel:
 
         if environment_variables is None:
             environment_variables = {}
+        if model_kwargs is not None:
+            environment_variables["HF_MODEL_KWARGS"] = str(model_kwargs)
         if "VERTEX_CPR_WEB_CONCURRENCY" not in environment_variables:
             warnings.warn(
-                "Since the `VERTEX_CPR_WEB_CONCURRENCY` environment variable hasn't been set, it will default to 1, meaning that `uvicorn` will only run the model in one worker. If you prefer to run the model using more workers, feel free to provide a greater value for `VERTEX_CPR_WEB_CONCURRENCY`",
+                "Since the `VERTEX_CPR_WEB_CONCURRENCY` environment variable hasn't been set,"
+                " it will default to 1, meaning that `uvicorn` will only run the model in one"
+                " worker. If you prefer to run the model using more workers, feel free to provide"
+                " a greater value for `VERTEX_CPR_WEB_CONCURRENCY`",
                 stacklevel=1,
             )
             environment_variables["VERTEX_CPR_WEB_CONCURRENCY"] = "1"
@@ -130,7 +136,7 @@ class TransformersModel:
         )
 
         # https://github.com/googleapis/python-aiplatform/blob/63ad1bf9e365d2f10b91e2fd036e3b7d937336c0/google/cloud/aiplatform/models.py#L2974
-        self._model: aiplatform.Model = aiplatform.Model.upload(
+        self._model: aiplatform.Model = aiplatform.Model.upload(  # type: ignore
             display_name=display_name,
             project=self.project_id,
             location=self.location,
@@ -139,7 +145,7 @@ class TransformersModel:
             serving_container_environment_variables=environment_variables,
         )
         self._endpoints: List[
-            Union[aiplatform.models.Endpoint, aiplatform.models.PrivateEndpoint]
+            Union[aiplatform.Endpoint, aiplatform.PrivateEndpoint]
         ] = []
 
     def deploy(
@@ -151,10 +157,19 @@ class TransformersModel:
         accelerator_count: Optional[int] = None,
     ) -> None:
         # https://github.com/googleapis/python-aiplatform/blob/63ad1bf9e365d2f10b91e2fd036e3b7d937336c0/google/cloud/aiplatform/models.py#L3431
-        self._model.deploy(
-            machine_type=machine_type,
-            min_replica_count=min_replica_count,
-            max_replica_count=max_replica_count,
-            accelerator_type=accelerator_type,
-            accelerator_count=accelerator_count,
+        self._endpoints.append(
+            self._model.deploy(
+                machine_type=machine_type,
+                min_replica_count=min_replica_count,
+                max_replica_count=max_replica_count,
+                accelerator_type=accelerator_type,
+                accelerator_count=accelerator_count,
+                sync=False,
+            )
         )
+
+    def undeploy(self) -> None:
+        for endpoint in self._endpoints:
+            endpoint.delete(force=True, sync=False)
+        self._endpoints = []
+        self._model.delete(sync=False)

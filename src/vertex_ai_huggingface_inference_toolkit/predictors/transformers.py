@@ -17,24 +17,58 @@ class TransformersPredictor(Predictor):
 
     def load(self, artifacts_uri: str) -> None:
         """Loads the preprocessor and model artifacts."""
-        self._logger.info(f"Downloading artifacts from {artifacts_uri}")
+        self._logger.info(
+            f"Downloading artifacts from `artifacts_uri='{artifacts_uri}'`"
+        )
         prediction_utils.download_model_artifacts(artifacts_uri)
         self._logger.info("Artifacts successfully downloaded!")
 
-        os.makedirs("./transformers-model", exist_ok=True)
-        with tarfile.open("model.tar.gz", "r:gz") as tar:
-            tar.extractall(path="./transformers-model")
+        hub_id = os.getenv("HF_HUB_ID", None)
+        file_exists = os.path.exists("model.tar.gz") and os.path.isfile("model.tar.gz")
+        if not file_exists and hub_id is None:
+            error_msg = "Neither the environment variable `HF_HUB_ID` nor the file `model.tar.gz` exist!"
+            self._logger.error(error_msg)
+            raise RuntimeError(error_msg)
 
-        self._logger.info(f"HF_TASK value is {os.getenv('HF_TASK')}")
+        model_path = "./transformers-model" if file_exists else hub_id
+        if file_exists:
+            if hub_id:
+                self._logger.warn(
+                    f"Since both the provided `artifacts_uri={artifacts_uri}` and the environment"
+                    f" variable `HF_HUB_ID={hub_id}` are set, the `artifacts_uri` will be used as"
+                    " it has priority over the `HF_HUB_ID` environment variable."
+                )
+            os.makedirs("./transformers-model", exist_ok=True)
+            with tarfile.open("model.tar.gz", "r:gz") as tar:
+                tar.extractall(path="./transformers-model")
+
+        model_kwargs = os.getenv("HF_MODEL_KWARGS", None)
+        if model_kwargs is not None:
+            try:
+                model_kwargs = eval(model_kwargs)
+                self._logger.info(f"HF_MODEL_KWARGS value is {model_kwargs}")
+                model_kwargs.pop("device", None)
+                model_kwargs.pop("device_map", None)
+            except Exception:
+                self._logger.error(
+                    f"Failed to parse `HF_MODEL_KWARGS` environment variable: {model_kwargs}"
+                )
+                model_kwargs = {}
+
+        task = os.getenv("HF_TASK", "")
+        if task != "":
+            self._logger.info(f"HF_TASK value is {task}")
+
         try:
-            self._logger.info("Trying to load `pipeline` using `device_map='auto'`")
+            self._logger.info("Loading `pipeline` using `device_map='auto'`")
             self._pipeline = pipeline(
-                os.getenv("HF_TASK", ""),
-                model="./transformers-model",
+                task,
+                model=model_path,
                 device_map="auto",
+                **model_kwargs,  # type: ignore
             )
         except ValueError as ve:
-            self._logger.info(
+            self._logger.error(
                 f"Failed to load `pipeline` using `device_map='auto'` failed with exception: {ve}"
             )
             # Some models like `DebertaV2ForSequenceClassification` do not support `device_map='auto'`
@@ -42,17 +76,17 @@ class TransformersPredictor(Predictor):
             if not pattern.search(str(ve)):
                 raise ve
 
-            self._logger.info(
-                f"Trying to load `pipeline` using `device='{get_device()}'`"
-            )
+            device = get_device()
+            self._logger.info(f"Loading `pipeline` using `device='{device}'` instead!")
             self._pipeline = pipeline(
-                os.getenv("HF_TASK", ""),
-                model="./transformers-model",
-                device=get_device(),
+                task,
+                model=model_path,
+                device=device,
+                **model_kwargs,  # type: ignore
             )
 
         self._logger.info(
-            f"`pipeline` successfully loaded using device={self._pipeline.device}"
+            f"`pipeline` successfully loaded and running on device={self._pipeline.device}"
         )
 
     def predict(self, instances: Dict[str, Any]) -> Dict[str, Any]:
