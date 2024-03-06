@@ -11,11 +11,31 @@ def upload_file_to_gcs(
     remote_path: str,
     bucket_name: Optional[str] = None,
 ) -> str:
+    """Uploads a file from local storage to Google Cloud Storage.
+
+    Args:
+        project_id: is either the name or the identifier of the project in Google Cloud.
+        location: is the identifier of the region and zone where the file will be uploaded to.
+        local_path: is the path to the file in the local storage.
+        remote_path: is the destination path in Google Cloud Storage where the file will be
+            uploaded to.
+        bucket_name: is the name of the bucket in Google Cloud Storage where the file will
+            be uploaded to.
+
+    Returns:
+        The path in Google Cloud Storage to the uploaded file.
+    """
+
     client = Client(project=project_id)
 
+    # By default we will use the `vertex-ai-huggingface-inference-toolkit` bucket
+    # if no bucket has been provided.
     if bucket_name is None:
         bucket_name = "vertex-ai-huggingface-inference-toolkit"
 
+    # If the bucket doesn't exist, we create it, ensuring that the `uniform_bucket_level_access_enabled`
+    # is enabled so that we don't run into permission issues when downloading files from
+    # the bucket from the running container in Vertex AI.
     bucket = client.bucket(bucket_name)
     if not bucket.exists():
         warnings.warn(
@@ -26,6 +46,7 @@ def upload_file_to_gcs(
         bucket.iam_configuration.uniform_bucket_level_access_enabled = True
         bucket.patch()
 
+    # Finally, the blob is created and the file is uploaded to that blob
     blob = bucket.blob(remote_path)
     blob.upload_from_filename(local_path)
     return f"gs://{bucket_name}/{remote_path}"  # type: ignore
