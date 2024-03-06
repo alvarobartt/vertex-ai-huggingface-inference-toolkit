@@ -91,4 +91,8 @@ class TransformersPredictor(Predictor):
         )
 
     def predict(self, instances: Dict[str, Any]) -> Dict[str, Any]:
+        # NOTE: temporary patch for `text-classification` until the following PR is merged (if so):
+        # https://github.com/huggingface/transformers/pull/29495
+        if "args" in instances:
+            return self._pipeline(instances.pop("args"), **instances)  # type: ignore
         return self._pipeline(**instances)  # type: ignore
