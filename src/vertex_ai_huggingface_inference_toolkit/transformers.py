@@ -122,8 +122,12 @@ class TransformersModel:
 
         if environment_variables is None:
             environment_variables = {}
-        if model_kwargs is not None:
+        if model_kwargs is not None and "HF_MODEL_KWARGS" not in environment_variables:
             environment_variables["HF_MODEL_KWARGS"] = str(model_kwargs)
+        if isinstance(environment_variables["HF_MODEL_KWARGS"], dict):
+            environment_variables["HF_MODEL_KWARGS"] = str(
+                environment_variables["HF_MODEL_KWARGS"]
+            )
         if "VERTEX_CPR_WEB_CONCURRENCY" not in environment_variables:
             warnings.warn(
                 "Since the `VERTEX_CPR_WEB_CONCURRENCY` environment variable hasn't been set,"
