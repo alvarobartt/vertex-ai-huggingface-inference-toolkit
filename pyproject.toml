@@ -28,7 +28,7 @@ dependencies = [
 description = "🤗 Hugging Face Inference Toolkit for Google Cloud Vertex AI (similar to SageMaker's Inference Toolkit, but unofficial)"
 dynamic = ["version"]
 keywords = []
-license = "Apache 2.0"
+license = "Apache-2.0"
 name = "vertex_ai_huggingface_inference_toolkit"
 readme = "README.md"
 requires-python = ">=3.8"
