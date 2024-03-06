@@ -1,0 +1,17 @@
+title: TextGenerationPipelineOutput
+oneOf:
+  - type: object
+    properties:
+      generated_text:
+        type: string
+        description: The generated text.
+  - type: object
+    properties:
+      generated_token_ids:
+        type: array
+        items:
+          anyOf:
+            - type: float
+            - type: int
+        description: The token ids of the generated text.
+
