@@ -4,6 +4,7 @@ LABEL maintainer="Alvaro Bartolome"
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONBUFFERED=1
 
 RUN mkdir -m 777 -p /usr/app /home
 WORKDIR /usr/app
