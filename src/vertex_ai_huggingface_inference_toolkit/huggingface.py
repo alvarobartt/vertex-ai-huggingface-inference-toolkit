@@ -34,6 +34,7 @@ FRAMEWORK_MAPPING = {
     "openvino": "*openvino*",
     "ckpt": "*ckpt",
 }
+"""Mapping from the framework identifier to the regex to capture all the required files."""
 
 FRAMEWORK_NAMING = {
     "pytorch": "torch",
@@ -41,11 +42,28 @@ FRAMEWORK_NAMING = {
     "jax": "flax",
     "tf": "tensorflow",
 }
+"""Mapping from alternative framework names to their used identifier."""
 
 
 def download_files_from_hub(repo_id: str, framework: str) -> str:
+    """Downloads the required files from the Hugging Face Hub based on the given `framework`.
+    This function ensures that only the required / available files are downloaded, to avoid
+    downloading unnecessary files.
+
+    Args:
+        repo_id: is the identifier of the model repository in the Hugging Face Hub.
+        framework: is the framework identifier to download the files for.
+
+    Returns:
+        The local directory where the files have been downloaded, which is a directory
+        in the `vertex_ai_huggingface_inference_toolkit` cache.
+    """
+
+    # Set the environment variable `HF_HUB_ENABLE_HF_TRANSFER` to `1` to enable the use of
+    # `hf_transfer` via `huggingface_hub` for faster downloads.
     os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
 
+    # Normalize the framework provided and check whether it's among the supported ones.
     framework = FRAMEWORK_NAMING.get(framework.lower(), framework.lower())
     if framework not in ["torch", "tensorflow", "flax"]:
         raise NotImplementedError(
@@ -54,15 +72,22 @@ def download_files_from_hub(repo_id: str, framework: str) -> str:
             " in beta."
         )
 
+    # Check if the model has been exported using `safetensors` and give priority to those files
+    # are are safer than PyTorch default's serialization format which relies on `pickle`.
     if framework == "torch":
         fs = HfFileSystem()
         if any(file.endswith(".safetensors") for file in fs.ls(repo_id, detail=False)):  # type: ignore
             framework = "safetensors"
 
+    # Define the filters/patterns to ignore when downloading files from the Hugging Face Hub based
+    # on the framework to use.
     pattern = FRAMEWORK_MAPPING.get(framework, None)
     ignore_patterns = list(set(FRAMEWORK_MAPPING.values()))
     if pattern in ignore_patterns:
         ignore_patterns.remove(pattern)
+
+    # Additionally, also include the `README.md`, `.gitattributes` and `.git` files, not ignored within
+    # the `sagemaker_huggingface_inference_toolkit` implementation.
     ignore_patterns.extend(["README.md", ".gitattributes", ".git/*"])
 
     return snapshot_download(  # type: ignore
