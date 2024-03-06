@@ -43,6 +43,7 @@ class TransformersPredictor(Predictor):
                 tar.extractall(path="./transformers-model")
 
         model_kwargs = os.getenv("HF_MODEL_KWARGS", None)
+        model_kwargs_dict: Dict[str, Any] = {}
         if model_kwargs is not None:
             try:
                 model_kwargs_dict = eval(model_kwargs)
@@ -53,7 +54,6 @@ class TransformersPredictor(Predictor):
                 self._logger.error(
                     f"Failed to parse `HF_MODEL_KWARGS` environment variable: {model_kwargs}"
                 )
-                model_kwargs_dict = {}
 
         task = os.getenv("HF_TASK", "")
         if task != "":
