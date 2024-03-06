@@ -1,7 +1,7 @@
 import os
 import re
 import tarfile
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from google.cloud.aiplatform.prediction.predictor import Predictor
 from google.cloud.aiplatform.utils import prediction_utils
@@ -15,13 +15,14 @@ class TransformersPredictor(Predictor):
     def __init__(self) -> None:
         self._logger = get_logger("vertex-ai-huggingface-inference-toolkit")
 
-    def load(self, artifacts_uri: str) -> None:
+    def load(self, artifacts_uri: Optional[str] = None) -> None:
         """Loads the preprocessor and model artifacts."""
-        self._logger.info(
-            f"Downloading artifacts from `artifacts_uri='{artifacts_uri}'`"
-        )
-        prediction_utils.download_model_artifacts(artifacts_uri)
-        self._logger.info("Artifacts successfully downloaded!")
+        if artifacts_uri is not None:
+            self._logger.info(
+                f"Downloading artifacts from `artifacts_uri='{artifacts_uri}'`"
+            )
+            prediction_utils.download_model_artifacts(artifacts_uri)
+            self._logger.info("Artifacts successfully downloaded!")
 
         hub_id = os.getenv("HF_HUB_ID", None)
         file_exists = os.path.exists("model.tar.gz") and os.path.isfile("model.tar.gz")
