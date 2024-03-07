@@ -1,5 +1,6 @@
 ARG CUDA_VERSION="12.3.0"
-FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu22.04 AS build
+ARG UBUNTU_VERSION="22.04"
+FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu${UBUNTU_VERSION} AS build
 LABEL maintainer="Alvaro Bartolome"
 
 ARG DEBIAN_FRONTEND=noninteractive

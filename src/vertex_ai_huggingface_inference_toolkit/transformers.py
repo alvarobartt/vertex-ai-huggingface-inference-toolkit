@@ -39,6 +39,7 @@ class TransformersModel:
         transformers_version: Optional[str] = None,
         python_version: Optional[str] = None,
         cuda_version: Optional[str] = None,
+        ubuntu_version: Optional[str] = None,
         custom_image_uri: Optional[str] = None,
         extra_requirements: Optional[List[str]] = None,
         environment_variables: Optional[Dict[str, str]] = None,
@@ -104,6 +105,7 @@ class TransformersModel:
                 framework_version=framework_version or "2.1.0",
                 transformers_version=transformers_version or "4.38.2",
                 cuda_version=cuda_version,
+                ubuntu_version=ubuntu_version,
                 extra_requirements=extra_requirements,
             )
             create_repository_in_artifact_registry(

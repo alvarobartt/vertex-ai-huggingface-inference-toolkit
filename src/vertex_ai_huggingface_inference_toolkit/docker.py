@@ -20,6 +20,7 @@ def build_docker_image(
     framework_version: str,
     transformers_version: str,
     cuda_version: Optional[str] = None,
+    ubuntu_version: Optional[str] = None,
     extra_requirements: Optional[List[str]] = None,
 ) -> str:
     """Builds the Docker image locally using `docker`, building it via `--build-args`
@@ -36,8 +37,11 @@ def build_docker_image(
             inference code will be run via `transformers`.
         cuda_version: is the version of CUDA to use, if planning to deploy the model
             within an instance with GPU acceleration. The CUDA versions to be provided
-            need to be in the format of X.Y.Z, and available at https://hub.docker.com/r/nvidia/cuda/tags?page=1&name=runtime-ubuntu
+            need to be in the format of X.Y.Z, and available at https://hub.docker.com/r/nvidia/cuda/tags?page=1&name=-base-ubuntu
             i.e. "12.3.0", "12.3.2", etc.
+        ubuntu_version: is the version of Ubuntu which depends on the CUDA version specified
+            above, since it's appended to the image name to pull from. The available Ubuntu versions
+            per CUDA version are available at https://hub.docker.com/r/nvidia/cuda/tags?page=1&name=runtime-ubuntu too.
         extra_requirements: is an optional list of requirements to install within the
             image, following the `pip install` formatting i.e. `sentence-transformers >= 2.5.0`.
 
@@ -61,6 +65,8 @@ def build_docker_image(
     if cuda_version is not None:
         _build_args["CUDA_VERSION"] = cuda_version
         _dockerfile = "Dockerfile.gpu"
+    if ubuntu_version is not None:
+        _build_args["UBUNTU_VERSION"] = ubuntu_version
     if extra_requirements is not None:
         _build_args["EXTRA_REQUIREMENTS"] = " ".join(extra_requirements)
 
