@@ -191,6 +191,12 @@ class TransformersModel:
             Union[aiplatform.Endpoint, aiplatform.PrivateEndpoint]
         ] = []
 
+    @property
+    def endpoints(
+        self,
+    ) -> Optional[List[Union[aiplatform.Endpoint, aiplatform.PrivateEndpoint]]]:
+        return self._endpoints
+
     def deploy(
         self,
         machine_type: Optional[str] = None,
