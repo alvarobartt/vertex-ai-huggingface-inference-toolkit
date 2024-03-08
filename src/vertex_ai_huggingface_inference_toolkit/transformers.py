@@ -97,7 +97,6 @@ class TransformersModel:
                 local_path=_tar_gz_path.as_posix(),
                 remote_path=f"{model_name_or_path.replace('/', '--')}/model.tar.gz",
             )
-
         self.model_bucket_uri = model_bucket_uri.replace("/model.tar.gz", "")  # type: ignore
 
         if custom_image_uri is None:
@@ -216,7 +215,6 @@ class TransformersModel:
                 max_replica_count=max_replica_count,
                 accelerator_type=accelerator_type,
                 accelerator_count=accelerator_count,
-                sync=False,
             )
         )
 
