@@ -7,8 +7,7 @@ from google.cloud.aiplatform.prediction.predictor import Predictor
 from google.cloud.aiplatform.utils import prediction_utils
 from transformers import pipeline
 
-from vertex_ai_huggingface_inference_toolkit.logging import get_logger
-from vertex_ai_huggingface_inference_toolkit.utils import get_device
+from vertex_ai_huggingface_inference_toolkit.utils import get_device, get_logger
 
 
 class TransformersPredictor(Predictor):

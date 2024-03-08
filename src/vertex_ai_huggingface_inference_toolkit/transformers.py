@@ -12,18 +12,14 @@ else:
 from google.auth import default
 from google.cloud import aiplatform
 
-from vertex_ai_huggingface_inference_toolkit.docker import (
+from vertex_ai_huggingface_inference_toolkit.utils import (
+    CACHE_PATH,
     build_docker_image,
     configure_docker_and_push_image,
-)
-from vertex_ai_huggingface_inference_toolkit.google_cloud.artifact_registry import (
     create_repository_in_artifact_registry,
-)
-from vertex_ai_huggingface_inference_toolkit.google_cloud.storage import (
+    download_files_from_hub,
     upload_file_to_gcs,
 )
-from vertex_ai_huggingface_inference_toolkit.huggingface import download_files_from_hub
-from vertex_ai_huggingface_inference_toolkit.utils import CACHE_PATH
 
 
 class TransformersModel:
