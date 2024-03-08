@@ -2,6 +2,7 @@ import os
 import sys
 import tarfile
 import warnings
+from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 
 if sys.version_info < (3, 9):
@@ -65,15 +66,20 @@ class TransformersModel:
         self.location = location
 
         if model_name_or_path is not None:
-            _local_dir = download_files_from_hub(
-                repo_id=model_name_or_path, framework=framework
-            )
+            if os.path.exists(model_name_or_path):
+                _local_dir = model_name_or_path
+                _tar_gz_path = Path(_local_dir) / "model.tar.gz"
+            else:
+                _local_dir = download_files_from_hub(
+                    repo_id=model_name_or_path, framework=framework
+                )
 
-            _cache_path = CACHE_PATH / model_name_or_path.replace("/", "--")
-            if not _cache_path.exists():
-                _cache_path.mkdir(parents=True, exist_ok=True)
+                _cache_path = CACHE_PATH / model_name_or_path.replace("/", "--")
+                if not _cache_path.exists():
+                    _cache_path.mkdir(parents=True, exist_ok=True)
 
-            _tar_gz_path = _cache_path / "model.tar.gz"
+                _tar_gz_path = _cache_path / "model.tar.gz"
+
             if _tar_gz_path.exists():
                 _tar_gz_path.unlink()
 
