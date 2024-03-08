@@ -143,7 +143,7 @@ class TransformersModel:
         )
 
         task = environment_variables.get("HF_TASK", "")
-        if task == "":
+        if task == "" or task not in ["text-generation", "zero-shot-classification"]:
             warnings.warn(
                 "`HF_TASK` hasn't been set within the `environment_variables` dict, so the"
                 " `task` will default to an empty string which may not be ideal. Additionally,"
