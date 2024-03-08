@@ -38,7 +38,7 @@ if __name__ == "__main__":
     Example:
         >>> export HF_HUB_ID="cardiffnlp/twitter-roberta-base-sentiment-latest"
         >>> export HF_TASK="text-classification"
-        >>> python vertex_ai_huggingface_inference_toolkit.server.custom_serving.py
+        >>> python vertex_ai_huggingface_inference_toolkit/server/custom_serving.py
     """
     import uvicorn
 
