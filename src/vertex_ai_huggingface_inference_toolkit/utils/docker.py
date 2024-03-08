@@ -72,6 +72,7 @@ def build_docker_image(
 
     _path = str(
         importlib_resources.files("vertex_ai_huggingface_inference_toolkit")
+        / "_internal"
         / "dockerfiles"
     )
 
