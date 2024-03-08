@@ -160,6 +160,7 @@ class TransformersModel:
         else:
             _path = str(
                 importlib_resources.files("vertex_ai_huggingface_inference_toolkit")
+                / "_internal"
                 / "schemas"
                 / task
             )
