@@ -7,6 +7,10 @@ from google.cloud.aiplatform.prediction.predictor import Predictor
 from google.cloud.aiplatform.utils import prediction_utils
 from transformers import pipeline
 
+from vertex_ai_huggingface_inference_toolkit.transformers_utils import (
+    FEATURE_EXTRACTOR_TASKS,
+    PIPELINE_TASKS,
+)
 from vertex_ai_huggingface_inference_toolkit.utils import get_device, get_logger
 
 
@@ -93,12 +97,30 @@ class TransformersPredictor(Predictor):
                     f"Failed to parse `HF_MODEL_KWARGS` environment variable: {model_kwargs}"
                 )
 
+        # Set `torch_dtype` to `auto` is not set.
+        if "torch_dtype" not in model_kwargs_dict:
+            model_kwargs_dict["torch_dtype"] = "auto"
+
         # If the `HF_TASK` environment variable is set, then we use it to load the `pipeline` with the
         # specified task, otherwise we load the `pipeline` with the default task, which is inferred from
         # the model's architecture.
         task = os.getenv("HF_TASK", "")
         if task != "":
+            if task not in PIPELINE_TASKS:
+                error_msg = (
+                    f"The `HF_TASK` environment variable value '{task}' is not supported! "
+                    f"Supported values are: {PIPELINE_TASKS}"
+                )
+                self._logger.error(error_msg)
+                raise ValueError(error_msg)
+
             self._logger.info(f"HF_TASK value is {task}")
+
+            # Ported from https://github.com/aws/sagemaker-huggingface-inference-toolkit/blob/80634b30703e8e9525db8b7128b05f713f42f9dc/src/sagemaker_huggingface_inference_toolkit/transformers_utils.py#L274-L284
+            if task in FEATURE_EXTRACTOR_TASKS:
+                model_kwargs_dict["feature_extractor"] = model_path
+            else:
+                model_kwargs_dict["tokenizer"] = model_path
 
         try:
             # First we try to load the `pipeline` using `device_map='auto'` from `accelerate`, but since some
