@@ -38,10 +38,10 @@ class TransformersModel:
         # Google Cloud Artifact Registry (Docker)
         framework: Literal["torch", "tensorflow", "flax"] = "torch",
         framework_version: Optional[str] = None,
-        transformers_version: Optional[str] = None,
-        python_version: Optional[str] = None,
-        cuda_version: Optional[str] = None,
-        ubuntu_version: Optional[str] = None,
+        transformers_version: str = "4.38.2",
+        python_version: str = "3.10",
+        cuda_version: str = "12.3.0",
+        ubuntu_version: str = "22.04",
         extra_requirements: Optional[List[str]] = None,
         image_target_repository: str = "vertex-ai-huggingface-inference-toolkit",
         # Exclusive arg for Google Cloud Artifact Registry
@@ -109,11 +109,19 @@ class TransformersModel:
         self.model_bucket_uri = model_bucket_uri.replace("/model.tar.gz", "")  # type: ignore
 
         if image_uri is None:
+            if framework_version is None:
+                if framework == "torch":
+                    framework_version = "2.1.0"
+                elif framework == "tensorflow":
+                    framework_version = "2.15.0"
+                elif framework == "flax":
+                    framework_version = "0.8.0"
+
             _image = build_docker_image(
-                python_version=python_version or "3.10",
-                framework=framework or "torch",
-                framework_version=framework_version or "2.1.0",
-                transformers_version=transformers_version or "4.38.2",
+                python_version=python_version,
+                framework=framework,
+                framework_version=framework_version,
+                transformers_version=transformers_version,
                 cuda_version=cuda_version,
                 ubuntu_version=ubuntu_version,
                 extra_requirements=extra_requirements,
