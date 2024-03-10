@@ -208,6 +208,7 @@ class TransformersModel:
     def endpoints(
         self,
     ) -> Optional[List[Union[aiplatform.Endpoint, aiplatform.PrivateEndpoint]]]:
+        """Returns the list of deployed `Endpoint` resources, if any."""
         return self._endpoints
 
     def deploy(
@@ -218,7 +219,21 @@ class TransformersModel:
         accelerator_type: Optional[str] = None,
         accelerator_count: Optional[int] = None,
     ) -> None:
-        # https://github.com/googleapis/python-aiplatform/blob/63ad1bf9e365d2f10b91e2fd036e3b7d937336c0/google/cloud/aiplatform/models.py#L3431
+        """Deploys the model to a `Endpoint` resource, with the given `machine_type` and
+        `accelerator_type` and `accelerator_count` if provided. The `min_replica_count` and
+        `max_replica_count` are set to 1 by default, but can be changed if needed.
+
+        Args:
+            machine_type: is the type of machine to use for the deployment, e.g. `n1-standard-8`.
+            min_replica_count: is the minimum number of replicas to use for the deployment.
+            max_replica_count: is the maximum number of replicas to use for the deployment.
+            accelerator_type: is the type of accelerator to use for the deployment, e.g. `NVIDIA_TESLA_T4`.
+            accelerator_count: is the number of accelerators to use for the deployment, e.g. `1`.
+
+        References:
+            - https://github.com/googleapis/python-aiplatform/blob/63ad1bf9e365d2f10b91e2fd036e3b7d937336c0/google/cloud/aiplatform/models.py#L3431
+        """
+
         self._endpoints.append(
             self._model.deploy(
                 machine_type=machine_type,
@@ -230,6 +245,9 @@ class TransformersModel:
         )
 
     def undeploy(self) -> None:
+        """Undeploys the model from the `Endpoint` resources, if any. Finally, deletes the model
+        from Vertex AI Model Registry."""
+
         for endpoint in self._endpoints:
             endpoint.delete(force=True, sync=False)
         self._endpoints = []
