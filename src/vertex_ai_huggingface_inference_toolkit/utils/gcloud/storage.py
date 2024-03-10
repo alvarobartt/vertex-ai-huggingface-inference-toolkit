@@ -1,5 +1,4 @@
 import warnings
-from typing import Optional
 
 from google.cloud.storage import Client
 
@@ -8,8 +7,8 @@ def upload_file_to_gcs(
     project_id: str,
     location: str,
     local_path: str,
+    bucket_name: str,
     remote_path: str,
-    bucket_name: Optional[str] = None,
 ) -> str:
     """Uploads a file from local storage to Google Cloud Storage.
 
@@ -17,21 +16,16 @@ def upload_file_to_gcs(
         project_id: is either the name or the identifier of the project in Google Cloud.
         location: is the identifier of the region and zone where the file will be uploaded to.
         local_path: is the path to the file in the local storage.
-        remote_path: is the destination path in Google Cloud Storage where the file will be
-            uploaded to.
         bucket_name: is the name of the bucket in Google Cloud Storage where the file will
             be uploaded to.
+        remote_path: is the destination path in Google Cloud Storage where the file will be
+            uploaded to.
 
     Returns:
         The path in Google Cloud Storage to the uploaded file.
     """
 
     client = Client(project=project_id)
-
-    # By default we will use the `vertex-ai-huggingface-inference-toolkit` bucket
-    # if no bucket has been provided.
-    if bucket_name is None:
-        bucket_name = "vertex-ai-huggingface-inference-toolkit"
 
     # If the bucket doesn't exist, we create it, ensuring that the `uniform_bucket_level_access_enabled`
     # is enabled so that we don't run into permission issues when downloading files from

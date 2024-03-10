@@ -26,19 +26,27 @@ from vertex_ai_huggingface_inference_toolkit.utils import (
 class TransformersModel:
     def __init__(
         self,
+        # Google Cloud
         project_id: Optional[str] = None,
         location: Optional[str] = None,
+        # Google Cloud Storage
         model_name_or_path: Optional[str] = None,
         model_kwargs: Optional[Dict[str, Any]] = None,
+        model_target_bucket: str = "vertex-ai-huggingface-inference-toolkit",
+        # Exclusive arg for Google Cloud Storage
         model_bucket_uri: Optional[str] = None,
+        # Google Cloud Artifact Registry (Docker)
         framework: Literal["torch", "tensorflow", "flax"] = "torch",
         framework_version: Optional[str] = None,
         transformers_version: Optional[str] = None,
         python_version: Optional[str] = None,
         cuda_version: Optional[str] = None,
         ubuntu_version: Optional[str] = None,
-        custom_image_uri: Optional[str] = None,
         extra_requirements: Optional[List[str]] = None,
+        image_target_repository: str = "vertex-ai-huggingface-inference-toolkit",
+        # Exclusive arg for Google Cloud Artifact Registry
+        image_uri: Optional[str] = None,
+        # Google Cloud Vertex AI
         environment_variables: Optional[Dict[str, str]] = None,
     ) -> None:
         if model_name_or_path is None and model_bucket_uri is None:
@@ -95,11 +103,12 @@ class TransformersModel:
                 project_id=self.project_id,  # type: ignore
                 location=self.location,
                 local_path=_tar_gz_path.as_posix(),
+                bucket_name=model_target_bucket,
                 remote_path=f"{model_name_or_path.replace('/', '--')}/model.tar.gz",
             )
         self.model_bucket_uri = model_bucket_uri.replace("/model.tar.gz", "")  # type: ignore
 
-        if custom_image_uri is None:
+        if image_uri is None:
             _image = build_docker_image(
                 python_version=python_version or "3.10",
                 framework=framework or "torch",
@@ -112,16 +121,16 @@ class TransformersModel:
             create_repository_in_artifact_registry(
                 project_id=self.project_id,  # type: ignore
                 location=self.location,
-                name="vertex-ai-huggingface-inference-toolkit",
+                name=image_target_repository,
                 format="DOCKER",
             )
-            custom_image_uri = configure_docker_and_push_image(
+            image_uri = configure_docker_and_push_image(
                 project_id=self.project_id,  # type: ignore
                 location=self.location,
-                repository="vertex-ai-huggingface-inference-toolkit",
+                repository=image_target_repository,
                 image_with_tag=_image,
             )
-        self.image_uri = custom_image_uri
+        self.image_uri = image_uri
 
         if environment_variables is None:
             environment_variables = {}
@@ -169,12 +178,14 @@ class TransformersModel:
                 project_id=self.project_id,  # type: ignore
                 location=self.location,
                 local_path=f"{_path}/input.yaml",
+                bucket_name=model_target_bucket,
                 remote_path=f"{display_name}/{task}/input.yaml",
             )
             prediction_schema_uri = upload_file_to_gcs(
                 project_id=self.project_id,  # type: ignore
                 location=self.location,
                 local_path=f"{_path}/output.yaml",
+                bucket_name=model_target_bucket,
                 remote_path=f"{display_name}/{task}/output.yaml",
             )
 
