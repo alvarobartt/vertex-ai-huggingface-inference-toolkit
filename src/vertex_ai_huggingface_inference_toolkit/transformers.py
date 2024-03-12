@@ -24,6 +24,25 @@ from vertex_ai_huggingface_inference_toolkit.utils import (
 
 
 class TransformersModel:
+    """Class that manages the whole lifecycle of a Hugging Face model either from the Hub
+    or from an existing Google Cloud Storage bucket to be deployed to Google Cloud Vertex AI
+    as an endpoint, running a Custom Prediction Routine (CPR) on top of a Hugging Face optimized
+    Docker image pushed to Google Cloud Artifact Registry.
+
+    This class is responsible for:
+    - Downloading the model from the Hub if `model_name_or_path` is provided.
+    - Uploading the model to Google Cloud Storage if `model_name_or_path` is provided.
+    - Building a Docker image with the prediction code, handler and the required dependencies if `image_uri` not provided.
+    - Pushing the Docker image to Google Cloud Artifact Registry if `image_uri` not provided.
+    - Registering the model in Google Cloud Vertex AI.
+    - Deploying the model as an endpoint with the provided environment variables.
+
+    Note:
+        This class is intended to be a high-level abstraction to simplify the process of deploying
+        models from the Hugging Face Hub to Google Cloud Vertex AI, and is built on top of `google-cloud-aiplatform`
+        and the rest of the required Google Cloud Python SDKs.
+    """
+
     def __init__(
         self,
         # Google Cloud
@@ -49,6 +68,48 @@ class TransformersModel:
         # Google Cloud Vertex AI
         environment_variables: Optional[Dict[str, str]] = None,
     ) -> None:
+        """Initializes the `TransformersModel` class, setting up the required attributes to
+        deploy a model from the Hugging Face Hub to Google Cloud Vertex AI.
+
+        Args:
+            project_id: is either the name or the identifier of the project in Google Cloud.
+            location: is the identifier of the region and zone where the resources will be created.
+            model_name_or_path: is the name of the model to be downloaded from the Hugging Face Hub.
+            model_kwargs: is the dictionary of keyword arguments to be passed to the model's `from_pretrained` method.
+            model_target_bucket: is the name of the bucket in Google Cloud Storage where the model will be uploaded to.
+            model_bucket_uri: is the URI to the model tar.gz file in Google Cloud Storage.
+            framework: is the framework to be used to build the Docker image, e.g. `torch`, `tensorflow`, `flax`.
+            framework_version: is the version of the framework to be used to build the Docker image.
+            transformers_version: is the version of the `transformers` library to be used to build the Docker image.
+            python_version: is the version of Python to be used to build the Docker image.
+            cuda_version: is the version of CUDA to be used to build the Docker image.
+            ubuntu_version: is the version of Ubuntu to be used to build the Docker image.
+            extra_requirements: is the list of extra requirements to be installed in the Docker image.
+            image_target_repository: is the name of the repository in Google Cloud Artifact Registry where the Docker image will be pushed to.
+            image_uri: is the URI to the Docker image in Google Cloud Artifact Registry.
+            environment_variables: is the dictionary of environment variables to be set in the Docker image.
+
+        Raises:
+            ValueError: if neither `model_name_or_path` nor `model_bucket_uri` is provided.
+            ValueError: if both `model_name_or_path` and `model_bucket_uri` are provided.
+
+        Examples:
+            >>> from vertex_ai_huggingface_inference_toolkit import TransformersModel
+            >>> model = TransformersModel(
+            ...     model_name_or_path="MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
+            ...     project_id="my-gcp-project",
+            ...     location="us-central1",
+            ...     environment_variables={
+            ...         "HF_TASK": "zero-shot-classification",
+            ...     },
+            ... )
+            >>> model.deploy(
+            ...     machine_type="n1-standard-8",
+            ...     accelerator_type="NVIDIA_TESLA_T4",
+            ...     accelerator_count=1,
+            ... )
+        """
+
         if model_name_or_path is None and model_bucket_uri is None:
             raise ValueError(
                 "You need to provide either `model_name_or_path` or `model_bucket_uri`"
@@ -59,11 +120,15 @@ class TransformersModel:
                 "You can't provide both `model_name_or_path` and `model_bucket_uri`"
             )
 
+        # If the `project_id` is not provided, then we retrieve the default one i.e. the one
+        # set as default via `gcloud config set project <project-id>`
         if project_id is None:
             # https://google-auth.readthedocs.io/en/master/reference/google.auth.html
             _, project_id = default()
         self.project_id = project_id
 
+        # If the `location` is not provided, then we default to `us-central1` as that's the
+        # Google Cloud default region.
         if location is None:
             warnings.warn(
                 "`location` has not been provided, so `location=us-central1` will be used"
@@ -73,11 +138,18 @@ class TransformersModel:
             location = "us-central1"
         self.location = location
 
+        # If the `model_bucket_uri` has been provided, then we will need to check whether it's
+        # the name to the model on the Hugging Face Hub, or the path to the model in the local
+        # storage.
         if model_name_or_path is not None:
             if os.path.exists(model_name_or_path):
+                # If the `model_name_or_path` is a local path, then we will need to compress everything
+                # within the directory into `model.tar.gz` and upload it to Google Cloud Storage.
                 _local_dir = model_name_or_path
                 _tar_gz_path = Path(_local_dir) / "model.tar.gz"
             else:
+                # If the `model_name_or_path` is a model from the Hugging Face Hub, then we will need
+                # to download it and upload it to Google Cloud Storage.
                 _local_dir = download_files_from_hub(
                     repo_id=model_name_or_path, framework=framework
                 )
@@ -91,6 +163,7 @@ class TransformersModel:
             if _tar_gz_path.exists():
                 _tar_gz_path.unlink()
 
+            # Then, we compress the directory into a `model.tar.gz` file
             with tarfile.open(_tar_gz_path, "w:gz") as tf:
                 for root, _, files in os.walk(_local_dir):
                     for file in files:
@@ -99,6 +172,7 @@ class TransformersModel:
                             file_path = os.path.realpath(file_path)
                         tf.add(file_path, arcname=file)
 
+            # Finally, we upload the `model.tar.gz` file to Google Cloud Storage
             model_bucket_uri = upload_file_to_gcs(
                 project_id=self.project_id,  # type: ignore
                 location=self.location,
@@ -108,7 +182,11 @@ class TransformersModel:
             )
         self.model_bucket_uri = model_bucket_uri.replace("/model.tar.gz", "")  # type: ignore
 
+        # If the `image_uri` has not been provided, then we will need to build the Docker image
+        # and push it to Google Cloud Artifact Registry.
         if image_uri is None:
+            # Depending on the `framework`, if `framework_version` has not been provided, then we
+            # select the latest or stable version of the selected `framework`, but it's not ideal.
             if framework_version is None:
                 if framework == "torch":
                     framework_version = "2.1.0"
@@ -117,6 +195,8 @@ class TransformersModel:
                 elif framework == "flax":
                     framework_version = "0.8.0"
 
+            # Then we build the Docker image with the provided args, that will be replaced within the
+            # Dockerfile to build, as those are internally defined as `BUILD_ARGS`
             _image = build_docker_image(
                 python_version=python_version,
                 framework=framework,
@@ -126,6 +206,8 @@ class TransformersModel:
                 ubuntu_version=ubuntu_version,
                 extra_requirements=extra_requirements,
             )
+            # Once the Docker image has been built, then we push it to Google Cloud Artifact Registry, but first
+            # we need to create a new repository if it doesn't exist.
             create_repository_in_artifact_registry(
                 project_id=self.project_id,  # type: ignore
                 location=self.location,
@@ -140,6 +222,8 @@ class TransformersModel:
             )
         self.image_uri = image_uri
 
+        # If the `environment_variables` are not set or any of the expected ones it not set, then we
+        # will set them to their default values.
         if environment_variables is None:
             environment_variables = {}
         if model_kwargs is not None and "HF_MODEL_KWARGS" not in environment_variables:
@@ -158,12 +242,18 @@ class TransformersModel:
             )
             environment_variables["VERTEX_CPR_WEB_CONCURRENCY"] = "1"
 
+        # If the `model_name_or_path` has been provided, then we will use it as the `display_name` of the
+        # model in Google Cloud Vertex AI Model Registry, otherwise we will use the last part of the
+        # `model_bucket_uri` as the `display_name`.
         display_name = (
             model_name_or_path.replace("/", "--")
             if model_name_or_path is not None
             else model_bucket_uri.split("/")[-1]  # type: ignore
         )
 
+        # If the `HF_TASK` environment variable has not been set in `environmnent_variables`, then we will
+        # warn the user that it hasn't been set, and set the `instance_schema_uri` and `prediction_schema_uri`
+        # to `None`.
         task = environment_variables.get("HF_TASK", "")
         if task == "" or task not in ["text-generation", "zero-shot-classification"]:
             warnings.warn(
@@ -182,6 +272,9 @@ class TransformersModel:
                 / "schemas"
                 / task
             )
+            # Since only the `text-generation` and `zero-shot-classification` tasks have the
+            # `instance_schema_uri` and `prediction_schema_uri` defined, then we will only
+            # upload the schemas if the `task` is one of those.
             instance_schema_uri = upload_file_to_gcs(
                 project_id=self.project_id,  # type: ignore
                 location=self.location,
@@ -197,6 +290,10 @@ class TransformersModel:
                 remote_path=f"{display_name}/{task}/output.yaml",
             )
 
+        # Finally, we upload the model to Google Cloud Vertex AI Model Registry, providing the
+        # `model_bucket_uri` in Google Cloud Storage, the `image_uri` in Google Cloud Artifact Registry,
+        # and the `environment_variables` to be set in the Docker image at runtime.
+        # `aiplatform.Model.upload` reference:
         # https://github.com/googleapis/python-aiplatform/blob/63ad1bf9e365d2f10b91e2fd036e3b7d937336c0/google/cloud/aiplatform/models.py#L2974
         self._model: aiplatform.Model = aiplatform.Model.upload(  # type: ignore
             display_name=display_name,
