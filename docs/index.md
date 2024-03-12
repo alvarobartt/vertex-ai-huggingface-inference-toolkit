@@ -116,6 +116,7 @@ model = TransformersModel(
 )
 ```
 </details>
+
 ## References / Acknowledgements
 
 This work is heavily inspired by [`sagemaker-huggingface-inference-toolkit`](https://github.com/aws/sagemaker-huggingface-inference-toolkit) early work from Philipp Schmid, Hugging Face, and Amazon Web Services.
