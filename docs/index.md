@@ -24,7 +24,7 @@ gcloud auth login
 Then install `vertex-ai-huggingface-inference-toolkit` via `pip install`:
 
 ```bash
-pip install vertex-ai-huggingface-inference-toolkit>=0.0.1
+pip install vertex-ai-huggingface-inference-toolkit>=0.0.2
 ```
 
 Or via `uv pip install` for faster installations using [`uv`](https://astral.sh/blog/uv):
