@@ -76,9 +76,9 @@ class TransformersModel(Model):
         Examples:
             >>> from vertex_ai_huggingface_inference_toolkit import TransformersModel
             >>> model = TransformersModel(
-            ...     model_name_or_path="MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
             ...     project_id="my-gcp-project",
             ...     location="us-central1",
+            ...     model_name_or_path="MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli",
             ...     environment_variables={
             ...         "HF_TASK": "zero-shot-classification",
             ...     },
@@ -99,12 +99,13 @@ class TransformersModel(Model):
             model_bucket_uri=model_bucket_uri,
             framework=framework,
             framework_version=framework_version,
+            huggingface_framework="transformers",  # type: ignore
+            huggingface_framework_version=transformers_version,
             python_version=python_version,
             cuda_version=cuda_version,
             ubuntu_version=ubuntu_version,
             extra_requirements=extra_requirements,
             image_target_repository=image_target_repository,
-            image_build_args={"transformers_version": transformers_version},
             image_uri=image_uri,
             environment_variables=environment_variables,
         )

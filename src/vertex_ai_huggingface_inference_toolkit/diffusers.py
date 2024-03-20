@@ -83,10 +83,10 @@ class DiffusersModel(Model):
         Examples:
             >>> from vertex_ai_huggingface_inference_toolkit import DiffusersModel
             >>> model = DiffusersModel(
-            ...     model_name_or_path="stabilityai/stable-diffusion-2",
-            ...     model_task="text-to-image",
             ...     project_id="my-gcp-project",
             ...     location="us-central1",
+            ...     model_name_or_path="stabilityai/stable-diffusion-2",
+            ...     model_task="text-to-image",
             ... )
             >>> model.deploy(
             ...     machine_type="n1-standard-8",
@@ -115,12 +115,13 @@ class DiffusersModel(Model):
             model_bucket_uri=model_bucket_uri,
             framework=framework,
             framework_version=framework_version,
+            huggingface_framework="diffusers",  # type: ignore
+            huggingface_framework_version=diffusers_version,
             python_version=python_version,
             cuda_version=cuda_version,
             ubuntu_version=ubuntu_version,
             extra_requirements=extra_requirements,
             image_target_repository=image_target_repository,
-            image_build_args={"diffusers_version": diffusers_version},
             image_uri=image_uri,
             environment_variables=environment_variables,
         )
