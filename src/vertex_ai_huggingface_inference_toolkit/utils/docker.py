@@ -69,10 +69,12 @@ def build_docker_image(
         "FRAMEWORK": framework,
         "FRAMEWORK_VERSION": framework_version,
     }
+
     if transformers_version is not None:
         _build_args["TRANSFORMERS_VERSION"] = transformers_version
     if diffusers_version is not None:
         _build_args["DIFFUSERS_VERSION"] = diffusers_version
+
     if cuda_version is not None:
         _build_args["CUDA_VERSION"] = cuda_version
         _dockerfile = "Dockerfile.gpu"
