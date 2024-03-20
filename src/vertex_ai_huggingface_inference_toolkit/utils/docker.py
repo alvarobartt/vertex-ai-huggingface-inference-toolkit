@@ -18,7 +18,7 @@ def build_docker_image(
     python_version: str,
     framework: str,
     framework_version: str,
-    huggingface_framework: Optional[Literal["transformers", "diffusers"]] = None,
+    huggingface_framework: Literal["transformers", "diffusers"],
     huggingface_framework_version: Optional[str] = None,
     cuda_version: Optional[str] = None,
     ubuntu_version: Optional[str] = None,
@@ -68,7 +68,7 @@ def build_docker_image(
 
     _build_args[
         f"{huggingface_framework.upper()}_VERSION"  # type: ignore
-    ] = huggingface_framework_version
+    ] = huggingface_framework_version  # type: ignore
 
     if cuda_version is not None:
         _build_args["CUDA_VERSION"] = cuda_version
@@ -81,7 +81,7 @@ def build_docker_image(
     _path = str(
         importlib_resources.files("vertex_ai_huggingface_inference_toolkit")
         / "_internal"
-        / huggingface_framework  # type: ignore
+        / huggingface_framework
         / "dockerfiles"
     )
 

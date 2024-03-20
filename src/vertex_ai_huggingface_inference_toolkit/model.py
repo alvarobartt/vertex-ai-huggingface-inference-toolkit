@@ -201,7 +201,7 @@ class Model:
                 python_version=python_version,
                 framework=framework,
                 framework_version=framework_version,
-                huggingface_framework=huggingface_framework,
+                huggingface_framework=huggingface_framework,  # type: ignore
                 huggingface_framework_version=huggingface_framework_version,
                 cuda_version=cuda_version,
                 ubuntu_version=ubuntu_version,

@@ -122,7 +122,7 @@ class DiffusersPredictor(Predictor):
         self._logger.info(f"HF_TASK value is {task}")
 
         self._logger.info("Loading `pipeline` using `device_map='auto'`")
-        self._pipeline = PIPELINE_TASKS[task].from_pretrained(
+        self._pipeline = PIPELINE_TASKS[task].from_pretrained(  # type: ignore
             pretrained_model_or_path=model_path,
             device_map="auto",
             **model_kwargs_dict,
@@ -132,6 +132,14 @@ class DiffusersPredictor(Predictor):
         )
 
     def _upload_image_to_gcs(self, image: Image) -> str:
+        """Uploads the given `image` to Google Cloud Storage and returns the public URL.
+
+        Args:
+            image: is the image to be uploaded to Google Cloud Storage.
+
+        Returns:
+            The public URL to the uploaded image in Google Cloud Storage.
+        """
         client = Client()
         bucket = client.get_bucket("vertex-ai-huggingface-inference-toolkit")
 
@@ -141,7 +149,7 @@ class DiffusersPredictor(Predictor):
 
         blob = bucket.blob(f"diffusers/{uuid4()}.jpg")
         blob.upload_from_string(contents, content_type="image/jpeg")
-        return blob.public_url
+        return blob.public_url  # type: ignore
 
     def predict(self, instances: Dict[str, Any]) -> Dict[str, Any]:
         """Runs the inference on top of the loaded `pipeline` with the given `instances`.
