@@ -51,7 +51,7 @@ class DiffusersModel(Model):
         # Google Cloud Vertex AI
         environment_variables: Optional[Dict[str, str]] = None,
     ) -> None:
-        """Initializes the `TransformersModel` class, setting up the required attributes to
+        """Initializes the `DiffusersModel` class, setting up the required attributes to
         deploy a model from the Hugging Face Hub to Google Cloud Vertex AI.
 
         Args:
@@ -59,6 +59,10 @@ class DiffusersModel(Model):
             location: is the identifier of the region and zone where the resources will be created.
             model_name_or_path: is the name of the model to be downloaded from the Hugging Face Hub.
             model_kwargs: is the dictionary of keyword arguments to be passed to the model's `from_pretrained` method.
+            model_task: is the task of the model to be used by the `diffusers` library. It can be one of the following:
+                - `text-to-image`: AutoPipelineForText2Image
+                - `image-to-text`: AutoPipelineForImage2Image
+                - `inpainting`: AutoPipelineForInpainting
             model_target_bucket: is the name of the bucket in Google Cloud Storage where the model will be uploaded to.
             model_bucket_uri: is the URI to the model tar.gz file in Google Cloud Storage.
             framework: is the framework to be used to build the Docker image, e.g. `torch`, `tensorflow`, `flax`.
@@ -91,12 +95,22 @@ class DiffusersModel(Model):
             ... )
         """
 
+        if environment_variables is None:
+            environment_variables = {}
+
+        if model_task and environment_variables.get("HF_TASK"):
+            raise ValueError(
+                "Both `model_task` and `environment_variables['HF_TASK']` cannot be provided."
+            )
+
+        if model_task:
+            environment_variables["HF_TASK"] = model_task
+
         super().__init__(
             project_id=project_id,
             location=location,
             model_name_or_path=model_name_or_path,
             model_kwargs=model_kwargs,
-            model_task=model_task,
             model_target_bucket=model_target_bucket,
             model_bucket_uri=model_bucket_uri,
             framework=framework,
