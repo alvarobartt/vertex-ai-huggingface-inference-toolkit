@@ -21,10 +21,16 @@ class CustomCprModelServer(CprModelServer):
         )
         os.environ["HANDLER_CLASS"] = "CustomPredictionHandler"
 
-        os.environ["PREDICTOR_MODULE"] = (
-            "vertex_ai_huggingface_inference_toolkit.predictors.transformers"
-        )
-        os.environ["PREDICTOR_CLASS"] = "TransformersPredictor"
+        if os.environ["HF_PACKAGE"] == "transformers":
+            os.environ["PREDICTOR_MODULE"] = (
+                "vertex_ai_huggingface_inference_toolkit.predictors.transformers"
+            )
+            os.environ["PREDICTOR_CLASS"] = "TransformersPredictor"
+        elif os.environ["HF_PACKAGE"] == "diffusers":
+            os.environ["PREDICTOR_MODULE"] = (
+                "vertex_ai_huggingface_inference_toolkit.predictors.diffusers"
+            )
+            os.environ["PREDICTOR_CLASS"] = "DiffusersPredictor"
 
         os.environ["AIP_HTTP_PORT"] = "8080"
         os.environ["AIP_HEALTH_ROUTE"] = "/health"
@@ -38,6 +44,12 @@ if __name__ == "__main__":
     Example:
         >>> export HF_HUB_ID="cardiffnlp/twitter-roberta-base-sentiment-latest"
         >>> export HF_TASK="text-classification"
+        >>> export HF_PACKAGE="transformers"
+        >>> python vertex_ai_huggingface_inference_toolkit/server/custom_serving.py
+
+        >>> export HF_HUB_ID="runwayml/stable-diffusion-v1-5"
+        >>> export HF_TASK="text-to-image"
+        >>> export HF_PACKAGE="diffusers"
         >>> python vertex_ai_huggingface_inference_toolkit/server/custom_serving.py
     """
     import uvicorn

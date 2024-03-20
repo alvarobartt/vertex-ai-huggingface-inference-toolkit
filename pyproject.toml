@@ -43,6 +43,7 @@ path = "src/vertex_ai_huggingface_inference_toolkit/__init__.py"
 
 [project.optional-dependencies]
 transformers = ["accelerate", "transformers"]
+diffusers = ["accelerate", "diffusers"]
 docs = [
     "mkdocs",
     "mkdocs-material",

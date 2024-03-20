@@ -2,7 +2,7 @@ import re
 import subprocess
 import sys
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 if sys.version_info < (3, 9):
     import importlib_resources
@@ -18,7 +18,8 @@ def build_docker_image(
     python_version: str,
     framework: str,
     framework_version: str,
-    transformers_version: str,
+    huggingface_framework: Literal["transformers", "diffusers"],
+    huggingface_framework_version: Optional[str] = None,
     cuda_version: Optional[str] = None,
     ubuntu_version: Optional[str] = None,
     extra_requirements: Optional[List[str]] = None,
@@ -33,8 +34,10 @@ def build_docker_image(
         framework: is the identifier of the deep learning framework to use. Available
             options for the moment are `torch`, `tensorflow` and `jax`.
         framework_version: is the version of the provided framework as shown in PyPI.
-        transformers_version: is the version of `transformers` to install, since the
-            inference code will be run via `transformers`.
+        huggingface_framework: is either `transformers` or `diffusers`, depending on
+            the framework to use for inference.
+        huggingface_framework_version: is the version of either `transformers` or `diffusers`
+            to use for inference, depending on the `huggingface_framework` specified.
         cuda_version: is the version of CUDA to use, if planning to deploy the model
             within an instance with GPU acceleration. The CUDA versions to be provided
             need to be in the format of X.Y.Z, and available at https://hub.docker.com/r/nvidia/cuda/tags?page=1&name=-base-ubuntu
@@ -51,7 +54,8 @@ def build_docker_image(
 
     # The tag is set in advance, generated from the replacements of the `--build-args`
     _device_string = f"cu{cuda_version}" if cuda_version is not None else "cpu"
-    _tag = f"py{python_version}-{_device_string}-{framework}-{framework_version}-transformers-{transformers_version}"
+    _huggingface_string = f"{huggingface_framework}-{huggingface_framework_version}"
+    _tag = f"py{python_version}-{_device_string}-{framework}-{framework_version}-{_huggingface_string}"
 
     # The `_build_args` to be replaced in the `Dockerfile` when building it need to be
     # prepared in advance, to ensure the formatting and assignment is fine.
@@ -60,8 +64,12 @@ def build_docker_image(
         "PYTHON_VERSION": python_version,
         "FRAMEWORK": framework,
         "FRAMEWORK_VERSION": framework_version,
-        "TRANSFORMERS_VERSION": transformers_version,
     }
+
+    _build_args[
+        f"{huggingface_framework.upper()}_VERSION"  # type: ignore
+    ] = huggingface_framework_version  # type: ignore
+
     if cuda_version is not None:
         _build_args["CUDA_VERSION"] = cuda_version
         _dockerfile = "Dockerfile.gpu"
@@ -73,6 +81,7 @@ def build_docker_image(
     _path = str(
         importlib_resources.files("vertex_ai_huggingface_inference_toolkit")
         / "_internal"
+        / huggingface_framework
         / "dockerfiles"
     )
 

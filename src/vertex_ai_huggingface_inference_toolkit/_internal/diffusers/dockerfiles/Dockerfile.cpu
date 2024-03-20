@@ -1,0 +1,33 @@
+ARG PYTHON_VERSION="3.10"
+FROM python:${PYTHON_VERSION}-slim AS build
+LABEL maintainer="Alvaro Bartolome"
+
+ARG DEBIAN_FRONTEND=noninteractive
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONBUFFERED=1
+
+RUN mkdir -m 777 -p /usr/app /home
+WORKDIR /usr/app
+ENV HOME=/home
+
+RUN python -m pip install --no-cache-dir --upgrade pip && \
+    python -m pip install --no-cache-dir --force-reinstall "google-cloud-aiplatform[prediction]>=1.27.0" && \
+    python -m pip install --no-cache-dir --force-reinstall "vertex_ai_huggingface_inference_toolkit[transformers]>=0.0.2" --upgrade
+
+ARG FRAMEWORK="torch"
+ARG FRAMEWORK_VERSION="2.2.0"
+RUN python -m pip install --no-cache-dir ${FRAMEWORK}==${FRAMEWORK_VERSION}
+
+ARG DIFFUSERS_VERSION="0.27.2"
+RUN python -m pip install --no-cache-dir diffusers==${DIFFUSERS_VERSION}
+
+ARG EXTRA_REQUIREMENTS
+RUN if [ -n "${EXTRA_REQUIREMENTS}" ]; then python -m pip install --no-cache-dir --force-reinstall ${EXTRA_REQUIREMENTS}; fi
+
+ENV HANDLER_MODULE=google.cloud.aiplatform.prediction.handler
+ENV HANDLER_CLASS=PredictionHandler
+ENV PREDICTOR_MODULE=vertex_ai_huggingface_inference_toolkit.predictors.diffusers
+ENV PREDICTOR_CLASS=DiffusersPredictor
+
+EXPOSE 8080
+ENTRYPOINT ["python", "-m", "google.cloud.aiplatform.prediction.model_server"]

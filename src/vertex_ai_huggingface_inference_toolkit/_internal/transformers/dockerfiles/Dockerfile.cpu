@@ -18,7 +18,7 @@ ARG FRAMEWORK="torch"
 ARG FRAMEWORK_VERSION="2.2.0"
 RUN python -m pip install --no-cache-dir ${FRAMEWORK}==${FRAMEWORK_VERSION}
 
-ARG TRANSFORMERS_VERSION="4.11.3"
+ARG TRANSFORMERS_VERSION="4.38.2"
 RUN python -m pip install --no-cache-dir transformers==${TRANSFORMERS_VERSION}
 
 ARG EXTRA_REQUIREMENTS

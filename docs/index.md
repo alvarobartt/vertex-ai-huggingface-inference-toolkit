@@ -9,6 +9,7 @@
 * 🐳 Automatically build Custom Prediction Routines (CPR) for Hugging Face Hub models using `transformers.pipeline`
 * 📦 Everything is packaged within a single method, providing more flexibility and ease of usage than the former `google-cloud-aiplatform` SDK for custom models
 * 🔌 Seamless integration for running inference on top of any model from the Hugging Face Hub in Vertex AI thanks to `transformers`
+* 🌅 Support for `diffusers` models too!
 * 🔍 Includes custom `logging` messages for better monitoring and debugging via Google Cloud Logging
 
 ## Get started
@@ -23,13 +24,13 @@ gcloud auth login
 Then install `vertex-ai-huggingface-inference-toolkit` via `pip install`:
 
 ```bash
-pip install vertex-ai-huggingface-inference-toolkit>=0.1.0
+pip install vertex-ai-huggingface-inference-toolkit>=0.0.2
 ```
 
 Or via `uv pip install` for faster installations using [`uv`](https://astral.sh/blog/uv):
 
 ```bash
-uv pip install vertex-ai-huggingface-inference-toolkit>=0.1.0
+uv pip install vertex-ai-huggingface-inference-toolkit>=0.0.2
 ```
 
 ## Example

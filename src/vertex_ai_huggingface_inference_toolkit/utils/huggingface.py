@@ -86,9 +86,14 @@ def download_files_from_hub(repo_id: str, framework: str) -> str:
     if pattern in ignore_patterns:
         ignore_patterns.remove(pattern)
 
+    # Add some more patterns to ignore if the framework is not `torch`, since not all the `torch`
+    # files contain are formatted as `pytorch*`, see `https://huggingface.co/runwayml/stable-diffusion-v1-5`
+    if framework != "torch":
+        ignore_patterns.extend(["*.pt", "*pth", "*bin"])
+
     # Additionally, also include the `README.md`, `.gitattributes` and `.git` files, not ignored within
     # the `sagemaker_huggingface_inference_toolkit` implementation.
-    ignore_patterns.extend(["README.md", ".gitattributes", ".git/*"])
+    ignore_patterns.extend(["README*", ".gitattributes", ".git/*", "LICENSE*"])
 
     return snapshot_download(  # type: ignore
         repo_id, ignore_patterns=ignore_patterns or None, local_dir_use_symlinks=False
