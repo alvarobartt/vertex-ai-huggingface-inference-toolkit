@@ -101,7 +101,11 @@ class DiffusersPredictor(Predictor):
 
         # Set `torch_dtype` to `auto` is not set.
         if "torch_dtype" not in model_kwargs_dict:
-            model_kwargs_dict["torch_dtype"] = torch.float16
+            model_kwargs_dict["torch_dtype"] = "auto"
+        else:
+            model_kwargs_dict["torch_dtype"] = getattr(
+                torch, model_kwargs_dict["torch_dtype"]
+            )
 
         # If the `HF_TASK` environment variable is set, then we use it to load the `pipeline` with the
         # specified task, otherwise we load the `pipeline` with the default task, which is inferred from
