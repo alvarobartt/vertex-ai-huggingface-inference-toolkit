@@ -57,11 +57,12 @@ class Model:
         # Google Cloud Artifact Registry (Docker)
         framework: Literal["torch", "tensorflow", "flax"] = "torch",
         framework_version: Optional[str] = None,
+        huggingface_framework: Optional[Literal["trasformers", "diffusers"]] = None,
+        huggingface_framework_version: Optional[str] = None,
         python_version: str = "3.10",
         cuda_version: str = "12.3.0",
         ubuntu_version: str = "22.04",
         extra_requirements: Optional[List[str]] = None,
-        image_build_args: Optional[Dict[str, str]] = None,
         image_target_repository: str = "vertex-ai-huggingface-inference-toolkit",
         # Exclusive arg for Google Cloud Artifact Registry
         image_uri: Optional[str] = None,
@@ -84,7 +85,6 @@ class Model:
             cuda_version: is the version of CUDA to be used to build the Docker image.
             ubuntu_version: is the version of Ubuntu to be used to build the Docker image.
             extra_requirements: is the list of extra requirements to be installed in the Docker image.
-            image_build_args: is the dictionary of build arguments to be passed to the Dockerfile when building the image.
             image_target_repository: is the name of the repository in Google Cloud Artifact Registry where the Docker image will be pushed to.
             image_uri: is the URI to the Docker image in Google Cloud Artifact Registry.
             environment_variables: is the dictionary of environment variables to be set in the Docker image.
@@ -201,10 +201,11 @@ class Model:
                 python_version=python_version,
                 framework=framework,
                 framework_version=framework_version,
+                huggingface_framework=huggingface_framework,
+                huggingface_framework_version=huggingface_framework_version,
                 cuda_version=cuda_version,
                 ubuntu_version=ubuntu_version,
                 extra_requirements=extra_requirements,
-                **image_build_args or {},
             )
             # Once the Docker image has been built, then we push it to Google Cloud Artifact Registry, but first
             # we need to create a new repository if it doesn't exist.
@@ -254,21 +255,26 @@ class Model:
         # If the `HF_TASK` environment variable has not been set in `environmnent_variables`, then we will
         # warn the user that it hasn't been set, and set the `instance_schema_uri` and `prediction_schema_uri`
         # to `None`.
-        task = environment_variables.get("HF_TASK", "")
-        if task == "" or task not in ["text-generation", "zero-shot-classification"]:
-            warnings.warn(
-                "`HF_TASK` hasn't been set within the `environment_variables` dict, so the"
-                " `task` will default to an empty string which may not be ideal. Additionally,"
-                " the `HF_TASK` needs to be defined so that the `instance_schema_uri` and"
-                " `predictions_schema_uri` can be generated automatically based on the `pipeline`"
-                " definition.",
-                stacklevel=1,
-            )
-            instance_schema_uri, prediction_schema_uri = None, None
-        else:
+        instance_schema_uri, prediction_schema_uri = None, None
+        if huggingface_framework == "transformers":
+            task = environment_variables.get("HF_TASK", "")
+            if task == "" or task not in [
+                "text-generation",
+                "zero-shot-classification",
+            ]:
+                warnings.warn(
+                    "`HF_TASK` hasn't been set within the `environment_variables` dict, so the"
+                    " `task` will default to an empty string which may not be ideal. Additionally,"
+                    " the `HF_TASK` needs to be defined so that the `instance_schema_uri` and"
+                    " `predictions_schema_uri` can be generated automatically based on the `pipeline`"
+                    " definition.",
+                    stacklevel=1,
+                )
+
             _path = str(
                 importlib_resources.files("vertex_ai_huggingface_inference_toolkit")
                 / "_internal"
+                / huggingface_framework
                 / "schemas"
                 / task
             )
