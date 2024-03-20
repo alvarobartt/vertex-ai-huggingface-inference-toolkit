@@ -31,11 +31,8 @@ ARG FRAMEWORK="torch"
 ARG FRAMEWORK_VERSION="2.2.0"
 RUN python -m pip install --no-cache-dir ${FRAMEWORK}==${FRAMEWORK_VERSION}
 
-ARG TRANSFORMERS_VERSION
-RUN if [ -n "${TRANSFORMERS_VERSION}" ]; then python -m pip install --no-cache-dir transformers==${TRANSFORMERS_VERSION}; fi
-
-ARG DIFFUSERS_VERSION
-RUN if [ -n "${DIFFUSERS_VERSION}" ]; then python -m pip install --no-cache-dir diffusers==${DIFFUSERS_VERSION}; fi
+ARG TRANSFORMERS_VERSION="4.38.2"
+RUN python -m pip install --no-cache-dir transformers==${TRANSFORMERS_VERSION}
 
 ARG EXTRA_REQUIREMENTS
 RUN if [ -n "${EXTRA_REQUIREMENTS}" ]; then python -m pip install --no-cache-dir --force-reinstall ${EXTRA_REQUIREMENTS}; fi
